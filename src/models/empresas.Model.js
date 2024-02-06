@@ -53,6 +53,11 @@ const empresaSchema = new Schema({
       message: "El email debe ser una cadena de texto",
     },
   },
+  estadoDeRegistro: { 
+    type: String,
+    enum: ["Pendiente", "Aprobado", "Rechazado"],
+    default: "Pendiente",
+},
 });
 
 module.exports = model("Empresa", empresaSchema, "empresas");

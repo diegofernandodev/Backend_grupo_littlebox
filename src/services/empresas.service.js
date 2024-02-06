@@ -1,13 +1,16 @@
 const Empresa = require("../models/empresas.Model");
+const { sendEmail } = require("../helpers/sendMail");
 
 /**
- * Obtiene todas las empresas.
- * @returns {Promise<Array>} - Un array de empresas.
+ * Obtiene las empresas según el estado de registro.
+ * @param {string} [estado] - El estado de registro por el cual filtrar las empresas ('Aprobado', 'Pendiente', 'Rechazado').
+ * @returns {Promise<Array>} - Un array de empresas según el estado de registro especificado o todas las empresas si no se proporciona un estado.
  * @throws {Error} - Se lanza un error si hay algún problema al obtener las empresas.
  */
-const obtenerEmpresas = async () => {
+const obtenerEmpresas = async (estado) => {
   try {
-    const empresas = await Empresa.find();
+    const query = estado ? { estadoDeRegistro: estado } : {};
+    const empresas = await Empresa.find(query);
     return empresas;
   } catch (error) {
     throw new Error(`Error al obtener las empresas: ${error.message}`);
@@ -110,6 +113,56 @@ const modificarEmpresaPorId = async (empresaId, nuevosDatos) => {
   }
 };
 
+const actualizarEstadoEmpresa = async (empresaId, nuevoEstado) => {
+  try {
+    const empresaPendiente = await Empresa.findOne({ _id: empresaId });
+
+    if (!empresaPendiente) {
+      throw new Error('Solicitud no encontrada');
+    }
+
+    // Obtener el nombre del estado actual 
+    const nombreEstado = empresaPendiente.estadoDeRegistro;
+    console.log("nombre del estado", nombreEstado);
+
+    if (nombreEstado == 'Aprobado' || nombreEstado == 'Rechazado') {
+      throw new Error('La solicitud de registro ya ha sido procesada, se encuentra en estado: ', nombreEstado);
+    }
+
+    // Actualizar estado 
+    empresaPendiente.estadoDeRegistro = nuevoEstado;
+    const EmpresaActualizada = await empresaPendiente.save();
+
+    if (nuevoEstado == empresaPendiente.estadoDeRegistro) {
+
+      try {
+        const datosMail = {
+          to: EmpresaActualizada.emailEmpresa,
+          subject: `Registro exitoso de empresa ${EmpresaActualizada.nombreEmpresa}`,
+          text: `¡Felicidades! Tu empresa ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login`
+        }
+        const newEmail = await sendEmail(datosMail);
+        console.log("Correo electrónico enviado:", newEmail);
+
+      } catch (error) {
+        console.error("No se pudo enviar el email:", error);
+        // Propaga el error para que sea manejado en un nivel superior si es necesario
+        throw error;
+      }
+
+    }
+
+    return EmpresaActualizada
+
+  } catch (error) {
+    if (error.name === 'CastError' && error.path === '_id') {
+      throw new Error("_id proporcionado no es válido o no se encontró en la base de datos");
+    } else {
+      throw error; // Propaga el error para que sea manejado en el controlador
+    }
+  }
+}
+
 module.exports = {
   obtenerEmpresas,
   obtenerEmpresaPorId,
@@ -117,4 +170,5 @@ module.exports = {
   actualizarEmpresaId,
   eliminarEmpresaPorId,
   modificarEmpresaPorId,
+  actualizarEstadoEmpresa,
 };

@@ -7,6 +7,7 @@ const routesCategorias = require("../routes/categorias.routes");
 const routesTerceros = require("../routes/terceros.routes");
 const routesEmpresas = require("../routes/empresas.routes");
 const routesUsers = require("../routes/user.routes");
+const routesUsersNoMiddlewere = require("../routes/userNoMiddleware.routes");
 const routesLogin = require("../routes/login.routes");
 const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
 const { seedCategorias } = require("../helpers/seed-categorias");
@@ -32,6 +33,7 @@ seedCategorias(); // Sembrar categorías, función para inicializar datos en la 
 
 // Rutas del servidor
 appLittlebox.use(routesLogin);
+appLittlebox.use(routesUsersNoMiddlewere);
 appLittlebox.use(verificarTokenMiddleware);
 appLittlebox.use(routesEmpresas);
 appLittlebox.use(routesCategorias);

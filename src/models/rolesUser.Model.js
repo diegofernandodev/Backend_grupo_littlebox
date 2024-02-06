@@ -6,10 +6,10 @@ const rolSchema = new Schema({
     required: true,
     unique: true,
   },
-  permisos: {
-    type: [String],
-    default: [],
-  },
+  // permisos: {
+  //   type: [String],
+  //   default: [],
+  // },
 });
 
 module.exports = model("rol", rolSchema,"rolesDeUsuario");

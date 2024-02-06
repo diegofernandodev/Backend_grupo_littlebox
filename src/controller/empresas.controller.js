@@ -5,6 +5,7 @@ const {
   actualizarEmpresaId,
   eliminarEmpresaPorId,
   modificarEmpresaPorId,
+  actualizarEstadoEmpresa,
 } = require("../services/empresas.service");
 const { ResponseStructure } = require("../helpers/ResponseStructure");
 
@@ -41,7 +42,11 @@ empresasController.obtenerEmpresaPorId = async (req, res) => {
  */
 empresasController.obtenerEmpresas = async (req, res) => {
   try {
-    const listaEmpresas = await obtenerEmpresas();
+     // Obtener el estado de registro de la solicitud (si está presente)
+    const estado = req.query.estadoDeRegistro;
+
+    // Obtener la lista de empresas según el estado de registro
+    const listaEmpresas = await obtenerEmpresas(estado);
     ResponseStructure.status = 200;
     ResponseStructure.message = "Empresas encontradas exitosamente";
     ResponseStructure.data = listaEmpresas;
@@ -64,13 +69,14 @@ empresasController.guardarEmpresa = async (req, res) => {
   try {
     const nuevaEmpresa = {
       ...req.body,
+      estadoDeRegistro: "Pendiente",
     };
 
     const empresaGuardada = await guardarEmpresa(nuevaEmpresa);
-    const idCurrent = empresaGuardada._id;
+    // const idCurrent = empresaGuardada._id;
 
-    const empresaId = await actualizarEmpresaId(idCurrent);
-    empresaGuardada.empresaId = empresaId;
+    // const empresaId = await actualizarEmpresaId(idCurrent);
+    // empresaGuardada.empresaId = empresaId;
     ResponseStructure.status = 200;
     ResponseStructure.message = "Empresa guardada exitosamente";
     ResponseStructure.data = empresaGuardada;
@@ -141,5 +147,29 @@ empresasController.modificarEmpresaPorId = async (req, res) => {
     res.status(400).json(ResponseStructure);
   }
 };
+
+empresasController.actualizarEstadoEmpresa = async (req, res)=>{
+  try {
+    const empresaId = req.params.id;
+    const nuevoEstado = req.body.nuevoEstado;  // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
+
+    const nuevoEstadoEmpresa = await actualizarEstadoEmpresa(
+      empresaId,
+      nuevoEstado,
+    );
+
+    ResponseStructure.status = 200;
+      ResponseStructure.message = "Estado registro de empresa modificado exitosamemte";
+      ResponseStructure.data = nuevoEstadoEmpresa;
+  
+      res.status(200).send(ResponseStructure);
+  } catch (error) {
+    ResponseStructure.status = 400;
+      ResponseStructure.message = "Error al modificar estado  registro de empresa";
+      ResponseStructure.data = error.message;
+  
+      res.status(400).json(ResponseStructure);
+  }
+}
 
 module.exports = empresasController;

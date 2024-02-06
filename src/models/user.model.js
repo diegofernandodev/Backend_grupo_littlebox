@@ -77,6 +77,11 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  estadoDeRegistro: { 
+    type: String,
+    enum: ["Pendiente", "Aprobado", "Rechazado"],
+    default: "Pendiente",
+},
 });
 
 

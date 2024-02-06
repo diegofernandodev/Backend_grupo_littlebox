@@ -1,11 +1,11 @@
 const { Router } = require("express");
 const router = Router();
 const {
-    guardarUsuario,
     obtenerUsuarios,
     obtenerUsuarioPorId,
     eliminarUsuarioPorId,
     modificarUsuarioPorId,
+    cambiarEstadoRegistroUser,
 } = require("../controller/user.controller");
 const{resetPassword, restablecerPassword, logout} = require("../controller/login.controller")
 
@@ -29,8 +29,11 @@ router.put("/modificarUsuario",verificarTokenMiddleware, checkRoleAuth(['gerente
 // Ruta para eliminar un usuario por su ID
 router.delete("/eliminarUsuario/:id",verificarTokenMiddleware, checkRoleAuth(['gerente']), eliminarUsuarioPorId);
 
-// Ruta para guardar una nueva categoria
-router.post("/guardarUsuario",verificarTokenMiddleware, checkRoleAuth(['gerente', 'administrador', 'colaborador']), guardarUsuario);
+// Ruta para cambiar estado de registro de empresa
+router.put("/actualizarEstadousuario/:id", verificarTokenMiddleware,checkRoleAuth(['Gerente']),cambiarEstadoRegistroUser);
+
+// // Ruta para guardar una nuevo usuario
+// router.post("/guardarUsuario", guardarUsuario);
 
 
 // Ruta para enviar correo de restablecer contraseña

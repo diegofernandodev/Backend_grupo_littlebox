@@ -6,6 +6,7 @@ const {
   obtenerUsuarioPorId,
   eliminarUsuarioPorId,
   modificarUsuarioPorId,
+  cambiarEstadoRegistroUser,
   loginUser,
   resetPassword,
 } = require("../services/user.service");
@@ -21,7 +22,8 @@ userController.guardarUsuario = async (req, res) => {
     };
 
     // Obtener el tenantId del token
-    const tenantId = req.tenantId;
+    // const tenantId = req.tenantId;
+    const tenantId = req.body.tenantId
     const rolGuardado = await guardarUsuario(newUser, tenantId);
 
     ResponseStructure.status = 200;
@@ -131,6 +133,32 @@ userController.modificarUsuarioPorId = async (req, res) => {
     res.status(400).json(ResponseStructure);
   }
 };
+
+userController.cambiarEstadoRegistroUser = async (req, res)=>{
+  try {
+    const userId = req.params.id;
+    const nuevoEstado = req.body.estadoDeRegistro;  // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
+    const tenantId = req.tenantId;
+
+    const nuevoEstadoUser = await cambiarEstadoRegistroUser(
+      userId,
+      nuevoEstado,
+      tenantId,
+    );
+
+    ResponseStructure.status = 200;
+      ResponseStructure.message = "Estado registro de usuario modificado exitosamemte";
+      ResponseStructure.data = nuevoEstadoUser;
+  
+      res.status(200).send(ResponseStructure);
+  } catch (error) {
+    ResponseStructure.status = 400;
+      ResponseStructure.message = "Error al modificar estado  registro de usuario";
+      ResponseStructure.data = error.message;
+  
+      res.status(400).json(ResponseStructure);
+  }
+}
 
 // userController.loginUser = async (req, res) => {
 //   try {
