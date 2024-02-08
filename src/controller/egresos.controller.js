@@ -35,10 +35,12 @@ egresosController.obtenerEgresoPorId = async (req, res) => {
 
 egresosController.obtenerEgresos = async (req, res) => {
   try {
+
+    const {fechaInicio, fechaFin, categoria, tercero } = req.body;
     const tenantId = req.tenantId;
 
     // Obtener la lista de egresos usando el servicio
-    const listaEgresos = await obtenerEgresos(tenantId);
+    const listaEgresos = await obtenerEgresos({tenantId,fechaInicio, fechaFin, categoria, tercero});
 
     // Responder con la lista de egresos
     ResponseStructure.status = 200;

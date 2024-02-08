@@ -3,7 +3,11 @@ const router = Router();
 const {
   guardarUsuario,
 } = require("../controller/user.controller");
-const { resetPassword, restablecerPassword, logout } = require("../controller/login.controller")
+
+const {
+  guardarEmpresa,
+} = require("../controller/empresas.controller");
+
 
 // const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
 // const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
@@ -17,6 +21,9 @@ router.get("/", (req, res) => {
 
 // Ruta para guardar una nuevo usuario
 router.post("/guardarUsuario", guardarUsuario);
+
+// Ruta para guardar una empresa por su ID
+router.post("/guardarEmpresa",guardarEmpresa);
 
 
 

@@ -58,6 +58,10 @@ const empresaSchema = new Schema({
     enum: ["Pendiente", "Aprobado", "Rechazado"],
     default: "Pendiente",
 },
+saldoInicialCaja: {
+  type: Schema.Types.ObjectId,
+  ref: "SaldoInicial",
+}
 });
 
 module.exports = model("Empresa", empresaSchema, "empresas");

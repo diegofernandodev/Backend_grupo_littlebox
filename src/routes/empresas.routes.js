@@ -3,7 +3,6 @@ const router = Router();
 const {
   obtenerEmpresas,
   obtenerEmpresaPorId,
-  guardarEmpresa,
   eliminarEmpresaPorId,
   modificarEmpresaPorId,
   actualizarEstadoEmpresa,
@@ -32,7 +31,5 @@ router.put("/modificarEmpresa/:id", verificarTokenMiddleware,checkRoleAuth(['ger
 // Ruta para eliminar una empresa por su ID
 router.delete("/eliminarEmpresa/:id", verificarTokenMiddleware,checkRoleAuth(['gerente','administrador']), eliminarEmpresaPorId);
 
-// Ruta para guardar una empresa por su ID
-router.post("/guardarEmpresa",guardarEmpresa);
 
 module.exports = router;
