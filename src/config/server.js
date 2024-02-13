@@ -16,10 +16,15 @@ const { seedCategorias } = require("../helpers/seed-categorias");
 const cors = require("cors");
 const { loginUser } = require("../controller/user.controller");
 require('dotenv').config();
+const path = require("path");
+
 
 // Configuración del servidor Express
 const appLittlebox = express();
 const port = 4000;
+
+appLittlebox.set("view engine", "pug");
+appLittlebox.set("views", path.join(__dirname, "views"));
 
 // Configuración de express-session
 appLittlebox.use(session({

@@ -82,6 +82,11 @@ const userSchema = new Schema({
     enum: ["Pendiente", "Aprobado", "Rechazado"],
     default: "Pendiente",
 },
+type: {
+  type: String,
+  enum: ['user'],
+  default: 'user', 
+}
 });
 
 

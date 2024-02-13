@@ -1,4 +1,5 @@
 const { model, Schema } = require("mongoose");
+const userController = require("../controller/user.controller");
 
 const empresaSchema = new Schema({
 // El tenantId hace referencia al Nit de la empresa
@@ -65,6 +66,11 @@ saldoInicialCaja: {
 saldoAutorizado: {
   type: Number,
   default: 0 // Valor inicial del saldo autorizado
+},
+type: {
+  type: String,
+  enum: ['company'],
+  default: 'company', 
 }
 });
 
