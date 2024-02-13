@@ -18,7 +18,7 @@ router.get("/", (req, res) => {
 });
 
 // Ruta para obtener todos los ingresos
-router.get("/obtenerTodosLosIngresos", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']),obtenerIngresos);
+router.get("/obtenerTodosLosIngresos", verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']),obtenerIngresos);
 
 // Ruta para obtener un ingreso por su ID
 router.get("/obtenerIngreso/:id", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']),obtenerIngresoPorId);
@@ -30,6 +30,7 @@ router.put("/modificarIngreso/:id", verificarTokenMiddleware,checkRoleAuth(['ger
 router.delete("/eliminarIngreso/:id", verificarTokenMiddleware,checkRoleAuth(['gerente']),eliminarIngresoPorId);
 
 // Ruta para guardar un nuevo ingreso
-router.post("/guardarIngreso", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']),guardarIngreso);
+router.post("/guardarIngreso", verificarTokenMiddleware,checkRoleAuth(['SuperUsuario','Gerente']),guardarIngreso);
+
 
 module.exports = router;

@@ -1,16 +1,25 @@
 const Ingreso = require("../models/ingreso.model");
 const counterService = require("./counter.service");
 const Usuario = require("../models/user.model");
+const { ResponseStructure } = require("../helpers/ResponseStructure");
 
-const obtenerIngresos = async ({ tenantId, fechaInicio, fechaFin} = {}) => {
+async function obtenerIngresos({ tenantId, fechaInicio, fechaFin } = {}) {
   try {
+    // Convertir las fechas a tipo Date
+    fechaInicio = new Date(fechaInicio);
+    fechaFin = new Date(fechaFin);
 
-    // Construir el filtro para la consulta
-    const filtro = { tenantId };
+    // Validar las fechas
+    if (!fechaInicio || !fechaFin || isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      throw new Error("Las fechas proporcionadas no son válidas");
+    }
 
-    if (fechaInicio) filtro.fechaInicio = { $gte: new Date(fechaInicio) };
-    if (fechaFin) filtro.fechaFin = { $lte: new Date(fechaFin) };
-   
+    // Construir el filtro correctamente
+    const filtro = {
+      tenantId,
+      fecha: { $gte: new Date(fechaInicio), $lte: new Date(fechaFin) },
+    };
+
     // Verificar que el tenantId coincide con el tenantId de los ingresos
     const ingresosExisten = await Ingreso.exists({ tenantId });
 
@@ -19,17 +28,29 @@ const obtenerIngresos = async ({ tenantId, fechaInicio, fechaFin} = {}) => {
     }
 
     // Obtener la lista de ingresos
-    const ingresos = await Ingreso.find({ tenantId })
-      .populate({
-        path: "User",
-        model: Usuario,
-      });
+    const ingresos = await Ingreso.find(filtro);
 
-    return ingresos;
+    const totalIngresos = ingresos.reduce((sum, ingreso) => sum + ingreso.valor, 0);
+    
+
+    // Devolver la estructura de respuesta
+    const ResponseStructureService = {
+      status: 200,
+      message: "Los ingresos fueron encontrados exitosamente",
+      data: ingresos,
+      totalIngresos
+    };
+
+    if (!ingresos.length) {
+      ResponseStructureService.status = 404;
+      ResponseStructureService.message = "No se encontraron ingresos con los parámetros seleccionados";
+    }
+
+    return ResponseStructureService;
   } catch (error) {
-    throw error; // Propaga el error para que sea manejado en el controlador
+    throw error; // Propagar el error para que sea manejado en el controlador
   }
-};
+}
 
 
 const obtenerIngresoPorId = async (ingresoId, tenantId) => {
@@ -43,10 +64,10 @@ const obtenerIngresoPorId = async (ingresoId, tenantId) => {
       throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
     }
     const ingreso = await Ingreso.findById({ _id: ingresoId, tenantId })
-    .populate({
-      path: "User",
-      model: Usuario,
-    });
+      .populate({
+        path: "User",
+        model: Usuario,
+      });
     return ingreso;
   } catch (error) {
     if (error.name === 'CastError' && error.path === '_id') {
@@ -139,6 +160,20 @@ const modificarIngresoPorId = async (ingresoId, nuevosDatos, tenantId) => {
   }
 };
 
+const obtenerSaldoInicial = async (tenantId) => {
+  try {
+    // Obtener el primer ingreso de caja para la empresa
+    const primerIngreso = await Ingreso.findOne({ tenantId }).sort({ fecha: 1 });
+    return primerIngreso ? primerIngreso.valor : 0;
+  } catch (error) {
+    if (error.name === 'CastError' && error.path === '_id') {
+      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    } else {
+      throw error; // Propaga el error para que sea manejado en el controlador
+    }
+  }
+};
+
 module.exports = {
   obtenerIngresos,
   obtenerIngresoPorId,
@@ -146,4 +181,5 @@ module.exports = {
   eliminarIngresoPorId,
   modificarIngresoPorId,
   actualizarIngresoId,
+  obtenerSaldoInicial,
 };

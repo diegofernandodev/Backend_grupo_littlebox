@@ -43,18 +43,29 @@ egresosController.obtenerEgresos = async (req, res) => {
     const listaEgresos = await obtenerEgresos({tenantId,fechaInicio, fechaFin, categoria, tercero});
 
     // Responder con la lista de egresos
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Egresos encontrados exitosamente";
-    ResponseStructure.data = listaEgresos;
+    // ResponseStructure.status = 200;
+    // ResponseStructure.message = "Egresos encontrados exitosamente";
+    // ResponseStructure.data = listaEgresos;
 
-    res.status(200).send(ResponseStructure);
+    res.status(listaEgresos.status).send(listaEgresos);
   } catch (error) {
     // Manejar los errores y responder con el mensaje adecuado
-    ResponseStructure.status = 500;
-    ResponseStructure.message = "Error al obtener egresos";
-    ResponseStructure.data = error.message;
-
-    res.status(500).json(ResponseStructure);
+    let statusCode = 500;
+    let message = "Error al obtener Egresos";
+    console.log("este es el error al obtener egresos", error);
+  
+    if (error.message === "Las fechas o filtros proporcionados no son válidos") {
+      statusCode = 400;
+      message = error.message;
+    } else if (error.message === "No se encontraron engresos con los parámetros seleccionados") {
+      statusCode = 404;
+      message = error.message;
+    }
+  
+    res.status(statusCode).json({
+      status: statusCode,
+      message: message,
+    });
   }
 };
 

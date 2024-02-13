@@ -24,11 +24,11 @@ userController.guardarUsuario = async (req, res) => {
     // Obtener el tenantId del token
     // const tenantId = req.tenantId;
     const tenantId = req.body.tenantId
-    const rolGuardado = await guardarUsuario(newUser, tenantId);
+    const userGuardado = await guardarUsuario(newUser, tenantId);
 
     ResponseStructure.status = 200;
     ResponseStructure.message = "Usuario guardado exitosamente";
-    ResponseStructure.data = rolGuardado;
+    ResponseStructure.data = userGuardado;
 
     res.status(200).send(ResponseStructure);
   } catch (error) {

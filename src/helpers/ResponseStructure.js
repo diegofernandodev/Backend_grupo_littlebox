@@ -3,4 +3,11 @@ const ResponseStructure = {
   message: "success",
   data: {},
 };
-module.exports = { ResponseStructure };
+
+
+// const ResponseStructureService = {
+//   status: 200,
+//   message: "success",
+//   data: {},
+// };
+module.exports = { ResponseStructure,  };

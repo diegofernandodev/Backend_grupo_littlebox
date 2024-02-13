@@ -35,8 +35,23 @@ const guardarUsuario = async (user, tenantId) => {
     // Crear nuevo usuario
     const newUser = new User(user);
 
+    await newUser.populate({
+      path: "rol",
+      model: rolModel,
+    });
+
     // Guardar el usuario
     const userSave = await newUser.save();
+    console.log("usuario: ",userSave);
+    console.log("rol de usuario: ",userSave.rol.nombre);
+    // Si el rol del usuario es "Administrador", enviar todos los datos
+    if (userSave.rol.nombre === 'Administrador') {
+      const nuevoEstado = "Aprobado"
+      const userId = userSave._id
+      // await sendEmail(userSave)
+      cambiarEstadoRegistroUser(userId, nuevoEstado, tenantId)
+
+    }
 
     return userSave;
   } catch (error) {
@@ -215,7 +230,7 @@ const cambiarEstadoRegistroUser = async (userId, nuevoEstado, tenantId) => {
     console.log("nuevoEstado:", nuevoEstado);
     console.log("tenantId:", tenantId);
 
-    const userPendiente = await User.findOne({ _id: userId, tenantId:tenantId });
+    const userPendiente = await User.findOne({ _id: userId, tenantId: tenantId });
     console.log("datos usuario pendiente cambio estado", userPendiente);
     if (!userPendiente) {
       throw new Error('usuario no encontrado');
@@ -232,21 +247,25 @@ const cambiarEstadoRegistroUser = async (userId, nuevoEstado, tenantId) => {
     // Actualizar estado 
     userPendiente.estadoDeRegistro = nuevoEstado;
     const usuarioActualizado = await userPendiente.save();
-
+    console.log("--------------------------------------");
+    console.log("usuario actualizado: ", usuarioActualizado);
+    console.log("--------------------------------------");
     if (nuevoEstado == userPendiente.estadoDeRegistro) {
 
-      try {
-        const datosMail = {
-          to: usuarioActualizado.email,
-          subject: `Registro exitoso usuario ${usuarioActualizado.name}`,
-          text: `¡Felicidades! ${usuarioActualizado.name} tu registro ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login`
-        }
-        const newEmail = await sendEmail(datosMail);
-        console.log("Correo electrónico enviado:", newEmail);
+      await sendEmail(usuarioActualizado);
 
-      } catch (error) {
-        console.error("No se pudo enviar el email:", error);
-      }
+      // try {
+      //   const datosMail = {
+      //     to: usuarioActualizado.email,
+      //     subject: `Registro exitoso usuario ${usuarioActualizado.name}`,
+      //     text: `¡Felicidades! ${usuarioActualizado.name} tu registro ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login`
+      //   }
+      //   const newEmail = await sendEmail(datosMail);
+      //   console.log("Correo electrónico enviado:", newEmail);
+
+      // } catch (error) {
+      //   console.error("No se pudo enviar el email:", error);
+      // }
 
     }
 

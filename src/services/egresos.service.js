@@ -2,16 +2,70 @@ const Egreso = require("../models/egresos.Model");
 const categoriaModel = require("../models/categoria.model");
 const terceroModel = require("../models/terceros.Model");
 const counterService = require("../services/counter.service");
+const mongoose = require("mongoose");
+const { ResponseStructure } = require("../helpers/ResponseStructure");
 
-const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, tercero } = {}) => {
+// const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, tercero } = {}) => {
+//   try {
+
+//     // Construir el filtro para la consulta
+//     const filtro = { tenantId };
+
+//     if (fechaInicio) filtro.fecha = { $gte: new Date(fechaInicio) };
+//     if (fechaFin) filtro.fecha = { ...filtro.fecha, $lte: new Date(fechaFin) };
+//     if (categoria) filtro.categoria = categoria;
+//     if (tercero) filtro.tercero = tercero;
+
+//     // Verificar que el tenantId coincide con el tenantId de los egresos
+//     const egresosExisten = await Egreso.exists({ tenantId });
+
+//     if (!egresosExisten) {
+//       throw new Error("TenantId proporcionado no es válido o no se encuentra en la base de datos");
+//     }
+
+//     // Obtener la lista de egresos
+//     const egresos = await Egreso.find({ tenantId })
+//       .populate({
+//         path: "categoria",
+//         model: categoriaModel,
+//       })
+//       .populate({
+//         path: "tercero",
+//         model: terceroModel,
+//       });
+
+//     return egresos;
+//   } catch (error) {
+//     throw error; // Propaga el error para que sea manejado en el controlador
+//   }
+// };
+
+async function obtenerEgresos({ tenantId, fechaInicio, fechaFin, categoria, tercero } = {}) {
   try {
+    // Convertir las fechas a tipo Date
+    fechaInicio = new Date(fechaInicio);
+    fechaFin = new Date(fechaFin);
 
-    // Construir el filtro para la consulta
-    const filtro = { tenantId };
+    // Validar las fechas
+    if (!fechaInicio || !fechaFin || isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      throw new Error("Las fechas proporcionadas no son válidas");
+    }
 
-    if (user) filtro.user = user;
-    if (fechaInicio) filtro.fechaInicio = { $gte: new Date(fechaInicio) };
-    if (fechaFin) filtro.fechaFin = { $lte: new Date(fechaFin) };
+    // Validar la categoría y el tercero
+    if (categoria && !mongoose.isValidObjectId(categoria)) {
+      throw new Error("La categoría proporcionada no es válida");
+    }
+
+    if (tercero && !mongoose.isValidObjectId(tercero)) {
+      throw new Error("El tercero proporcionado no es válido");
+    }
+
+    // Construir el filtro correctamente
+    const filtro = {
+      tenantId,
+      fecha: { $gte: fechaInicio, $lte: fechaFin },
+    };
+
     if (categoria) filtro.categoria = categoria;
     if (tercero) filtro.tercero = tercero;
 
@@ -23,7 +77,7 @@ const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, terc
     }
 
     // Obtener la lista de egresos
-    const egresos = await Egreso.find({ tenantId })
+    const egresos = await Egreso.find(filtro)
       .populate({
         path: "categoria",
         model: categoriaModel,
@@ -33,11 +87,31 @@ const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, terc
         model: terceroModel,
       });
 
-    return egresos;
-  } catch (error) {
-    throw error; // Propaga el error para que sea manejado en el controlador
+      const totalEgresos = egresos.reduce((sum, egreso) => sum + egreso.valor, 0);
+
+   // Devolver la estructura de respuesta
+   const ResponseStructureService = {
+    status: 200,
+    message: "Los egresos fueron encontrados exitosamente",
+    data: egresos,
+    totalEgresos
+  };
+
+  // ResponseStructure.status = 200;
+  // ResponseStructure.message = "Los egresos fueron encontrados exitosamente";
+  // ResponseStructure.data = egresos;
+
+  if (!egresos.length) {
+    ResponseStructureService.status = 404;
+    ResponseStructureService.message = "No se encontraron egresos con los parámetros seleccionados";
   }
-};
+
+  return ResponseStructureService;
+  } catch (error) {
+    throw error; // Propagar el error para que sea manejado en el controlador
+  }
+}
+
 
 const obtenerEgresoPorId = async (egresoId, tenantId) => {
 

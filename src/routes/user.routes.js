@@ -29,7 +29,7 @@ router.put("/modificarUsuario",verificarTokenMiddleware, checkRoleAuth(['gerente
 // Ruta para eliminar un usuario por su ID
 router.delete("/eliminarUsuario/:id",verificarTokenMiddleware, checkRoleAuth(['gerente']), eliminarUsuarioPorId);
 
-// Ruta para cambiar estado de registro de empresa
+// Ruta para cambiar estado de registro de usuario
 router.put("/actualizarEstadousuario/:id", verificarTokenMiddleware,checkRoleAuth(['Gerente']),cambiarEstadoRegistroUser);
 
 // // Ruta para guardar una nuevo usuario

@@ -29,5 +29,8 @@
     "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "password-generator": "^2.3.2"
   }
 }

@@ -18,7 +18,7 @@ router.get("/", (req, res) => {
 });
 
 // Ruta para obtener todos los egresos
-router.get("/obtenerTodosLosEgresos", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']),obtenerEgresos);
+router.get("/obtenerTodosLosEgresos", verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']),obtenerEgresos);
 
 // Ruta para obtener un egreso por su ID
 router.get("/obtenerEgreso/:id", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']),obtenerEgresoPorId);
@@ -30,6 +30,6 @@ router.put("/modificarEgreso/:id", verificarTokenMiddleware,checkRoleAuth(['gere
 router.delete("/eliminarEgreso/:id", verificarTokenMiddleware,checkRoleAuth(['gerente']),eliminarEgresoPorId);
 
 // Ruta para guardar un nuevo egreso
-router.post("/guardarEgreso", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']),guardarEgreso);
+router.post("/guardarEgreso", verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']),guardarEgreso);
 
 module.exports = router;

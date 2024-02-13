@@ -61,6 +61,10 @@ const empresaSchema = new Schema({
 saldoInicialCaja: {
   type: Schema.Types.ObjectId,
   ref: "SaldoInicial",
+},
+saldoAutorizado: {
+  type: Number,
+  default: 0 // Valor inicial del saldo autorizado
 }
 });
 

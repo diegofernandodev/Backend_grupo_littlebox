@@ -10,6 +10,7 @@ const egresoSchema = new Schema({
   solicitudId: {
     type: Number,
     required: false,
+    default: 0,
     // autoIncrement: true,
   },
 
@@ -66,6 +67,12 @@ const egresoSchema = new Schema({
   },
   factura: { 
     type: String 
+  },
+
+  tipo: {
+    type: String,
+    enum: ['Egreso'], // Solo permitir valores 'Egreso' para este campo
+    default: 'Egreso', // Valor por defecto es 'Egreso'
   },
 });
 
