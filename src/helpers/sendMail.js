@@ -1,93 +1,213 @@
 
-// const nodemailer = require("nodemailer");
-// const { randomPassword } = require("../helpers/passwordGenerator")
-// const fs = require("fs");
-
-
-// const path = require('path');
-
-
-// const sendEmail = async (userData) => {
-//   try {
-
-//     // const rutaAbsoluta = path.join(__dirname, 'views', 'emailUser.html');
-//     // console.log('Ruta absoluta:', rutaAbsoluta);
-
-//     const path = "../../views/emailUser.html";
-//     const plantillaUsuario = fs.readFileSync(path, "utf-8");
-
-    
-// if (fs.existsSync(rutaAbsoluta)) {
-//   console.log('El archivo HTML existe.');
-// } else {
-//   console.log('El archivo HTML no existe en la ruta especificada.');
-// }
-
-//     // const plantillaUsuario = fs.readFileSync("../views/emailUser.html", "utf-8");
-//     // console.log("esta es la plantilla de usuario", plantillaUsuario);
-//     // const plantillaEmpresa = fs.readFileSync("../views/emailEmpresa.html", "utf-8");
-
-//     const mensajeUsuario = plantillaUsuario.replace(/{{name}}/g, userData.name)
-//       .replace(/{{email}}/g, userData.email)
-//       .replace(/{{password}}/g, userData.password);
-
-//     // const mensajeEmpresa = plantillaEmpresa.replace(/{{nombre}}/g, userData.nombre)
-//     //   .replace(/{{email}}/g, userData.email)
-//     //   .replace(/{{usuarioPrincipal.name}}/g, empresa.usuarioPrincipal.name)
-//     //   .replace(/{{usuarioPrincipal.email}}/g, empresa.usuarioPrincipal.email)
-//     //   .replace(/{{usuarioPrincipal.password}}/g, empresa.usuarioPrincipal.password);
-
-//     const password = await randomPassword()
-//     const config = {
-//       host: "smtp.gmail.com",
-//       port: 587,
-//       auth: {
-//         user: "littleboxx23@gmail.com",
-//         pass: "ccnh rvez uzho akcs",
-//       },
-//     };
-
-//     // Crea un transporte una vez
-//     const transport = nodemailer.createTransport(config);
-
-//     const mensaje = {
-//       from: "littleboxx23@gmail.com",
-//       to: userData.email,
-//       subject: `Registro exitoso usuario ${userData.name}`,
-//       html: mensajeUsuario,
-//       //     `
-//       //   <h1>¡Felicidades! ${userData.name} tu registro ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login</h1>
-//       //   <h3>Credenciales de usuario<h3>
-//       //   <p>Nombre de usuario: ${userData.email}</p>
-//       //   <p>Password: ${password}</p>
-//       //   <p>Debes cambiar tu contraseña al iniciar sesion por primera vez<p>
-
-//       // `,
-//     };
-
-//     // Envía el correo electrónico utilizando el mismo transporte
-//     const info = await transport.sendMail(mensaje);
-
-//     console.log("Correo electrónico enviado:", info);
-
-//     return { success: true, message: "Correo electrónico enviado correctamente." };
-//   } catch (error) {
-//     console.error("Error al enviar el correo electrónico:", error);
-//     throw new Error("Error al enviar el correo electrónico. Detalles: " + error.message);
-//   }
-// };
-
-
 const nodemailer = require("nodemailer");
-const { randomPassword } = require("../helpers/passwordGenerator");
-const pug = require("pug");
-const path = require("path");
+const { randomPassword } = require("../helpers/passwordGenerator")
+const fs = require("fs");
+
+
+const path = require('path');
 
 
 const sendEmail = async (userData) => {
   try {
+
     const password = await randomPassword();
 
+    const mensajeUsuario =  `
+    <!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro exitoso - Littlebox</title>
+    <style>
+      /* Colores */
+      body {
+        background-color: #f7f7f7;
+        color: #333;
+      }
+
+      h1 {
+        color: #0073b7;
+      }
+
+      a {
+        color: #0073b7;
+        text-decoration: none;
+      }
+      .link {
+        font-size: 18px;
+      }
+
+      /* Fuentes */
+      h1 {
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        margin-top: 0;
+      }
+
+      p {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      small {
+        text-align: justify;
+        display: block;
+        color: gray;
+      }
+
+      /* Diseño */
+      .container {
+        width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+      }
+
+      .logo {
+        width: 150px;
+        height: auto;
+        margin-bottom: 20px;
+      }
+
+      .content {
+        margin-bottom: 20px;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>¡Felicidades, ${userData.name}! Tu registro ha sido aprobado.</h1>
+      <p>
+        Ahora puedes iniciar sesión en Littlebox con las siguientes
+        credenciales:
+      </p>
+      <ul>
+        <li>Usuario: ${userData.email}</li>
+        <li>Contraseña: ${password}</li>
+      </ul>
+      <p>
+        <strong>Importante:</strong> Debes cambiar tu contraseña al iniciar
+        sesión por primera vez.
+      </p>
+      <p>Para iniciar sesión, haz clic en el siguiente enlace:</p>
+      <a class="link" href="http://littlebox.com/login"
+        ><h4>Iniciar sesión</h4></a
+      >
+
+      <p>El equipo de Littlebox</p>
+      <br />
+      <small
+        >Para resolver cualquier inquietud o comentario ingrese a
+        <a href="http://littlebox.com">littlebox.com</a>; Opción Contáctenos y
+        diligencie el formulario Registre Solicitudes o si lo prefiere
+        comuníquese con nuestras líneas de servicio telefónico.</small
+      >
+
+     `
+
+     const mensajeEmpresa =  `
+     <!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro exitoso - Littlebox</title>
+    <style>
+      /* Colores */
+      body {
+        background-color: #f7f7f7;
+        color: #333;
+      }
+
+      h1 {
+        color: #0073b7;
+      }
+
+      a {
+        color: #0073b7;
+        text-decoration: none;
+      }
+
+      /* Fuentes */
+      h1 {
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        margin-top: 0;
+      }
+
+      p {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+
+      /* Diseño */
+      .container {
+        width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+      }
+
+      .logo {
+        width: 150px;
+        height: auto;
+        margin-bottom: 20px;
+      }
+
+      .content {
+        margin-bottom: 20px;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img src="https://littlebox.com/logo.png" class="logo" alt="Littlebox" />
+      <h1>¡Felicidades, {{nombreEmpresa}}! Tu registro ha sido aprobado.</h1>
+      <p>
+        Ahora tu empresa, {{nombreEmpresa}}, puede iniciar sesión en Littlebox
+        con las credenciales del usuario principal:
+      </p>
+      <ul>
+        <li>Nombre de usuario: {{correoUsuarioPrincipal}}</li>
+        <li>Contraseña: {{contraseñaUsuarioPrincipal}}</li>
+      </ul>
+      <p>
+        **Importante:** Debes cambiar la contraseña del usuario principal al
+        iniciar sesión por primera vez.
+      </p>
+      <p>Para iniciar sesión, haz clic en el siguiente enlace:</p>
+      <a href="http://littlebox.com/login">Iniciar sesión</a>
+      <br />
+      <p>
+        Te damos la bienvenida a Littlebox y esperamos que la plataforma te sea
+        de gran utilidad para gestionar tu empresa.
+      </p>
+      <p>El equipo de Littlebox</p>
+      <small
+        >Para resolver cualquier inquietud o comentario ingrese a
+        <a href="http://littlebox.com">littlebox.com</a>; Opción Contáctenos y
+        diligencie el formulario Registre Solicitudes o si lo prefiere
+        comuníquese con nuestras líneas de servicio telefónico.</small
+      >
+     `
+
+    // const password = await randomPassword()
     const config = {
       host: "smtp.gmail.com",
       port: 587,
@@ -100,29 +220,11 @@ const sendEmail = async (userData) => {
     // Crea un transporte una vez
     const transport = nodemailer.createTransport(config);
 
-    const mensajeUsuario = pug.renderFile(
-      path.join(__dirname, "../views/emailUser.pug"),
-      {
-        name: userData.name,
-        email: userData.email,
-        password,
-      }
-    );
-
-    const mensajeEmpresa = pug.renderFile(
-      path.join(__dirname, "../views/emailCompany.pug"),
-      {
-        name: userData.name,
-        email: userData.email,
-      }
-    );
-
     const mensaje = {
       from: "littleboxx23@gmail.com",
       to: userData.email,
       subject: `Registro exitoso usuario ${userData.name}`,
-      html:
-        userData.type === "user" ? mensajeUsuario : mensajeEmpresa,
+      html: userData.type === "user" ? mensajeUsuario : mensajeEmpresa,
     };
 
     // Envía el correo electrónico utilizando el mismo transporte
@@ -133,9 +235,69 @@ const sendEmail = async (userData) => {
     return { success: true, message: "Correo electrónico enviado correctamente." };
   } catch (error) {
     console.error("Error al enviar el correo electrónico:", error);
-    throw new Error("Error al enviar el correo electrónico.");
+    throw new Error("Error al enviar el correo electrónico. Detalles: " + error.message);
   }
 };
+
+
+// const nodemailer = require("nodemailer");
+// const { randomPassword } = require("../helpers/passwordGenerator");
+// const pug = require("pug");
+// const path = require("path");
+
+
+// const sendEmail = async (userData) => {
+//   try {
+//     const password = await randomPassword();
+
+//     const config = {
+//       host: "smtp.gmail.com",
+//       port: 587,
+//       auth: {
+//         user: "littleboxx23@gmail.com",
+//         pass: "ccnh rvez uzho akcs",
+//       },
+//     };
+
+//     // Crea un transporte una vez
+//     const transport = nodemailer.createTransport(config);
+
+//     const mensajeUsuario = pug.renderFile(
+//       path.join(__dirname, "../views/emailUser.pug"),
+//       {
+//         name: userData.name,
+//         email: userData.email,
+//         password,
+//       }
+//     );
+
+//     const mensajeEmpresa = pug.renderFile(
+//       path.join(__dirname, "../views/emailCompany.pug"),
+//       {
+//         name: userData.name,
+//         email: userData.email,
+//       }
+//     );
+
+//     const mensaje = {
+//       from: "littleboxx23@gmail.com",
+//       to: userData.email,
+//       subject: `Registro exitoso usuario ${userData.name}`,
+//       html:
+//         userData.type === "user" ? mensajeUsuario : mensajeEmpresa,
+//     };
+
+//     // Envía el correo electrónico utilizando el mismo transporte
+//     const info = await transport.sendMail(mensaje);
+
+//     console.log("Correo electrónico enviado:", info);
+
+//     return { success: true, message: "Correo electrónico enviado correctamente." };
+//   } catch (error) {
+//     console.error("Error al enviar el correo electrónico:", error);
+//     throw new Error("Error al enviar el correo electrónico.");
+//   }
+// };
 
 module.exports = {
   sendEmail,

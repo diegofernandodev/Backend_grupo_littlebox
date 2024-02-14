@@ -42,8 +42,8 @@ const guardarUsuario = async (user, tenantId) => {
 
     // Guardar el usuario
     const userSave = await newUser.save();
-    console.log("usuario: ",userSave);
-    console.log("rol de usuario: ",userSave.rol.nombre);
+    console.log("usuario: ", userSave);
+    console.log("rol de usuario: ", userSave.rol.nombre);
     // Si el rol del usuario es "Administrador", enviar todos los datos
     if (userSave.rol.nombre === 'Administrador') {
       const nuevoEstado = "Aprobado"
@@ -253,19 +253,6 @@ const cambiarEstadoRegistroUser = async (userId, nuevoEstado, tenantId) => {
     if (nuevoEstado == userPendiente.estadoDeRegistro) {
 
       await sendEmail(usuarioActualizado);
-
-      // try {
-      //   const datosMail = {
-      //     to: usuarioActualizado.email,
-      //     subject: `Registro exitoso usuario ${usuarioActualizado.name}`,
-      //     text: `¡Felicidades! ${usuarioActualizado.name} tu registro ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login`
-      //   }
-      //   const newEmail = await sendEmail(datosMail);
-      //   console.log("Correo electrónico enviado:", newEmail);
-
-      // } catch (error) {
-      //   console.error("No se pudo enviar el email:", error);
-      // }
 
     }
 

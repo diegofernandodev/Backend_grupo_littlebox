@@ -23,8 +23,8 @@ const path = require("path");
 const appLittlebox = express();
 const port = 4000;
 
-appLittlebox.set("view engine", "pug");
-appLittlebox.set("views", path.join(__dirname, "views"));
+// appLittlebox.set("view engine", "pug");
+// appLittlebox.set("views", path.join(__dirname, "views"));
 
 // Configuración de express-session
 appLittlebox.use(session({
