@@ -1,18 +1,14 @@
-
 const nodemailer = require("nodemailer");
-const { randomPassword } = require("../helpers/passwordGenerator")
+// const { randomPassword } = require("../helpers/passwordGenerator");
 const fs = require("fs");
 
+const path = require("path");
 
-const path = require('path');
-
-
-const sendEmail = async (userData) => {
+const sendEmail = async (userData, random_Password = null) => {
   try {
+    // const password = await randomPassword();
 
-    const password = await randomPassword();
-
-    const mensajeUsuario =  `
+    const mensajeUsuario = `
     <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -92,7 +88,7 @@ const sendEmail = async (userData) => {
       </p>
       <ul>
         <li>Usuario: ${userData.email}</li>
-        <li>Contraseña: ${password}</li>
+        <li>Contraseña: ${random_Password}</li>
       </ul>
       <p>
         <strong>Importante:</strong> Debes cambiar tu contraseña al iniciar
@@ -112,9 +108,9 @@ const sendEmail = async (userData) => {
         comuníquese con nuestras líneas de servicio telefónico.</small
       >
 
-     `
+     `;
 
-     const mensajeEmpresa =  `
+    const mensajeEmpresa = `
      <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -177,22 +173,17 @@ const sendEmail = async (userData) => {
   </head>
   <body>
     <div class="container">
-      <img src="https://littlebox.com/logo.png" class="logo" alt="Littlebox" />
-      <h1>¡Felicidades, {{nombreEmpresa}}! Tu registro ha sido aprobado.</h1>
+      <h1>¡Felicidades, ${userData.nombreEmpresa}! Tu registro ha sido aprobado.</h1>
       <p>
-        Ahora tu empresa, {{nombreEmpresa}}, puede iniciar sesión en Littlebox
-        con las credenciales del usuario principal:
+        Al correo del usuario principal Llegarán las credenciales para iniciar
+        sesión.
       </p>
-      <ul>
-        <li>Nombre de usuario: {{correoUsuarioPrincipal}}</li>
-        <li>Contraseña: {{contraseñaUsuarioPrincipal}}</li>
-      </ul>
       <p>
-        **Importante:** Debes cambiar la contraseña del usuario principal al
+      <strong>Importante:</strong> Debes cambiar la contraseña del usuario principal al
         iniciar sesión por primera vez.
       </p>
       <p>Para iniciar sesión, haz clic en el siguiente enlace:</p>
-      <a href="http://littlebox.com/login">Iniciar sesión</a>
+      <a href="http://littlebox.com/login"><h4>Iniciar sesión</h4></a>
       <br />
       <p>
         Te damos la bienvenida a Littlebox y esperamos que la plataforma te sea
@@ -205,8 +196,12 @@ const sendEmail = async (userData) => {
         diligencie el formulario Registre Solicitudes o si lo prefiere
         comuníquese con nuestras líneas de servicio telefónico.</small
       >
-     `
+     `;
 
+    const emailHtml =
+      userData.type === "user" ? mensajeUsuario : mensajeEmpresa;
+
+    // const text = heml.htmlToText(html);
     // const password = await randomPassword()
     const config = {
       host: "smtp.gmail.com",
@@ -220,11 +215,22 @@ const sendEmail = async (userData) => {
     // Crea un transporte una vez
     const transport = nodemailer.createTransport(config);
 
+    let toEmail = "";
+
+    // Verificar si userData es un usuario o una empresa
+    if (userData.type === "user") {
+      toEmail = userData.email;
+    } else if (userData.type === "company") {
+      toEmail = userData.emailEmpresa;
+    } else {
+      throw new Error("Tipo de datos no reconocido");
+    }
+
     const mensaje = {
       from: "littleboxx23@gmail.com",
-      to: userData.email,
+      to: toEmail,
       subject: `Registro exitoso usuario ${userData.name}`,
-      html: userData.type === "user" ? mensajeUsuario : mensajeEmpresa,
+      html: emailHtml,
     };
 
     // Envía el correo electrónico utilizando el mismo transporte
@@ -232,19 +238,22 @@ const sendEmail = async (userData) => {
 
     console.log("Correo electrónico enviado:", info);
 
-    return { success: true, message: "Correo electrónico enviado correctamente." };
+    return {
+      success: true,
+      message: "Correo electrónico enviado correctamente.",
+    };
   } catch (error) {
     console.error("Error al enviar el correo electrónico:", error);
-    throw new Error("Error al enviar el correo electrónico. Detalles: " + error.message);
+    throw new Error(
+      "Error al enviar el correo electrónico. Detalles: " + error.message,
+    );
   }
 };
-
 
 // const nodemailer = require("nodemailer");
 // const { randomPassword } = require("../helpers/passwordGenerator");
 // const pug = require("pug");
 // const path = require("path");
-
 
 // const sendEmail = async (userData) => {
 //   try {
