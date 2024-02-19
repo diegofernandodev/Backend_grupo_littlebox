@@ -16,6 +16,11 @@ const cors = require("cors");
 const { loginUser } = require("../controller/user.controller");
 require('dotenv').config();
 
+//Chatbot: 
+const queryRoutes = require('../routes/query.routes')
+const categoryRoutes = require('../routes/category.routes')
+const subcategoryRoutes = require ('../routes/subcategory.routes')
+
 // Configuración del servidor Express
 const appLittlebox = express();
 const port = 4000;
@@ -43,6 +48,12 @@ appLittlebox.use(routesEgresos);
 appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
 appLittlebox.use(routesUsers);
+
+//Rutas Chatbot
+appLittlebox.use(queryRoutes)
+appLittlebox.use(categoryRoutes)
+appLittlebox.use(subcategoryRoutes)
+//
 
 appLittlebox.set("port", process.env.PORT || port);
 
