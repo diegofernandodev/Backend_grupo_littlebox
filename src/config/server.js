@@ -16,6 +16,9 @@ const cors = require("cors");
 const { loginUser } = require("../controller/user.controller");
 require('dotenv').config();
 
+//notification
+const notificacion = require("../routes/notifyIngresados.routes")
+
 // Configuración del servidor Express
 const appLittlebox = express();
 const port = 4000;
@@ -43,6 +46,8 @@ appLittlebox.use(routesEgresos);
 appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
 appLittlebox.use(routesUsers);
+//notificaione
+appLittlebox.use(notificacion)
 
 appLittlebox.set("port", process.env.PORT || port);
 
