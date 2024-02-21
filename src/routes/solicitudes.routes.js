@@ -12,6 +12,7 @@ const {
 // const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
 const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
 const checkRoleAuth = require("../middleware/roleAuth");
+const upload = require("../middleware/adjFacturaMdw");
 
 router.get("/", (req, res) => {
   res.send("LittleBox");
@@ -33,11 +34,11 @@ router.get(
   obtenerSolicitudesPorId,
 );
 
-// Ruta para modificar una solicitud por su ID
 router.put(
   "/modificarSolicitud/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["administrador", "administrador", "colaborador"]),
+  checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
+  upload.single("facturaUrl"), // Aquí 'factura' debe ser el nombre del campo en el formulario del frontend
   modificarSolicitudPorId,
 );
 
@@ -61,7 +62,7 @@ router.delete(
 router.post(
   "/guardarSolicitud",
   verificarTokenMiddleware,
-  checkRoleAuth(["administrador"]),
+  checkRoleAuth(["Gerente", "Administrador"]),
   guardarSolicitud,
 );
 
