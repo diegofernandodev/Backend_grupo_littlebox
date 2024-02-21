@@ -3,26 +3,33 @@ const multer = require("multer");
 // Configuración de Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./public/facturas"); // Directorio donde se almacenarán los archivos adjuntos
+    let uploadPath = "src/public/facturas/";
+
+    if (file.mimetype.startsWith("image/")) {
+      uploadPath += "images/";
+    } else if (file.mimetype === "application/pdf") {
+      uploadPath += "pdf/";
+    } else {
+      return cb(new Error("Formato de archivo no compatible"));
+    }
+
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    // Generar el nombre del archivo con prefijo 'FC' + fecha actual
-    const currentDate = new Date();
-    const formattedDate = currentDate.toISOString().slice(0, 10); // Formato: AAAA-MM-DD
-    const facturaFileName = `FC_${formattedDate}_${file.originalname}`;
-    cb(null, facturaFileName); // Nombre del archivo en el servidor
+    // Aquí puedes personalizar el nombre del archivo si lo deseas
+    cb(null, file.originalname);
   },
 });
 
-// Filtro para permitir archivos PDF e imágenes JPEG
+// Filtro para permitir solo imágenes y PDFs
 const fileFilter = function (req, file, cb) {
   if (
-    file.mimetype === "application/pdf" ||
-    file.mimetype.startsWith("image/")
+    file.mimetype.startsWith("image/") ||
+    file.mimetype === "application/pdf"
   ) {
     cb(null, true);
   } else {
-    cb(new Error("El archivo debe ser un PDF o una imagen JPEG"), false);
+    cb(new Error("El archivo debe ser una imagen o un PDF"), false);
   }
 };
 
@@ -32,6 +39,7 @@ const upload = multer({
 });
 
 module.exports = upload;
+
 
 // const multer = require("multer");
 
