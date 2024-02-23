@@ -46,7 +46,7 @@ router.put(
 router.put(
   "/modificarEstadoSolicitud/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador"]),
+  checkRoleAuth(["Gerente", "Administrador"]),
   cambiarEstadoSolicitud,
 );
 

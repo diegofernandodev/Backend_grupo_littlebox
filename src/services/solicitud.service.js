@@ -252,7 +252,7 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
         detalle: solicitudActualizada.detalle,
         categoria: solicitudActualizada.categoria,
         valor: solicitudActualizada.valor,
-        factura: solicitudActualizada.factura,
+        factura: solicitudActualizada.facturaUrl,
         // Otros campos necesarios para el egreso de caja...
       });
 

@@ -76,16 +76,6 @@ const obtenerMovimientos = async (
   }
 };
 
-// const calcularSaldoFinal = (saldoInicial, totalDebitos, totalCreditos, movimientos) => {
-//   let saldo = saldoInicial;
-
-//   return movimientos.map(movimiento => {
-//     saldo += (movimiento.tipo === 'Ingreso' ? movimiento.valor : -movimiento.valor);
-//     movimiento.saldo = saldo;
-//     return movimiento;
-//   });
-// };
-
 const calcularSaldoFinal = (
   saldoInicial,
   totalDebitos,

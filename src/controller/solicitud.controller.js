@@ -136,13 +136,6 @@ solicitudesController.modificarSolicitudPorId = async (req, res) => {
 
     res.status(200).send(ResponseStructure);
   } catch (error) {
-    // const errorsCatch = error.errors;
-    // const errors = {};
-
-    // for (let i in errorsCatch) {
-    //   errors[i] = errorsCatch[i].message;
-    // }
-
     ResponseStructure.status = 400;
     ResponseStructure.message = "Error al modificar la solicitud";
     ResponseStructure.data = error.message;

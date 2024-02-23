@@ -215,27 +215,12 @@ const modificarUsuarioPorId = async (userId, token, nuevosDatos) => {
   }
 };
 
-//   const aprobarRechazarSolicitud = async (idSolicitud, nuevoEstado, usuario) => {
-//   const solicitud = await Solicitud.findById(idSolicitud);
-
-//   if (!solicitud) {
-//     throw new Error('Solicitud no encontrada');
-//   }
-
-//   if (solicitud.estado !== 'pendiente') {
-//     throw new Error('La solicitud ya ha sido procesada');
-//   }
-
-//   // Verificar si el usuario tiene el rol de administrador
-//   if (usuario.rol === 'administrador') {
-//     solicitud.estado = nuevoEstado;
-//     const solicitudActualizada = await solicitud.save();
-//     return solicitudActualizada;
-//   } else {
-//     throw new Error('Usuario no tiene permisos para aprobar/rechazar esta solicitud');
-//   }
-// };
-
+/**
+ * Función para cambiar el estado registro de un usuario por su ID y tenant.
+ * @param {string} userId - Identificador del usuario.
+ * @param {string} tenantId - Identificador del tenant.
+ * @returns {Promise<Object>} - Promesa que resuelve con el usuario modificado.
+ */
 const cambiarEstadoRegistroUser = async (userId, nuevoEstado, tenantId) => {
   try {
     const userPendiente = await User.findOne({ _id: userId, tenantId });

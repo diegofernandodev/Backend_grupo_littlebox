@@ -1,7 +1,6 @@
 const { Schema, model } = require("mongoose");
 
 const terceroSchema = new Schema({
-
   nombreTercero: {
     type: String,
     required: [true, "Nombre del tercero es requerido"],
@@ -52,10 +51,6 @@ const terceroSchema = new Schema({
       message: "El email debe ser una cadena de texto",
     },
   },
-  // empresaTercero: {
-  //   type: Schema.Types.ObjectId,
-  //   ref: "Empresa",
-  // },
   tenantId: {
     type: String,
     required: true,

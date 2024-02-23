@@ -163,48 +163,4 @@ userController.cambiarEstadoRegistroUser = async (req, res) => {
   }
 };
 
-// userController.loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     // const tenantId = req.tenantId;
-
-//     // const result = await loginUser(email, password, tenantId);
-//     const result = await loginUser(email, password);
-
-//     ResponseStructure.status = 200;
-//     ResponseStructure.message = 'Login exitoso';
-//     ResponseStructure.data = result;
-
-//     res.status(200).json(ResponseStructure);
-//   } catch (error) {
-//     ResponseStructure.status = 500;
-//     ResponseStructure.message = 'Error al iniciar sesión';
-//     ResponseStructure.data = error.message;
-
-//     res.status(500).json(ResponseStructure);
-//   }
-// };
-
-// userController.resetPassword = async (req, res) => {
-//   try {
-//     const { email } = req.body;
-//     const tenantId = req.tenantId;
-
-//     const token = await resetPassword.generateToken(email, tenantId);
-//     await resetPassword.sendEmail(email, token);
-
-//     ResponseStructure.status = 200;
-//     ResponseStructure.message = 'Correo electrónico de restablecimiento de contraseña enviado correctamente.';
-//     ResponseStructure.data = { email };
-
-//     res.status(200).json(ResponseStructure);
-//   } catch (error) {
-//     ResponseStructure.status = 500;
-//     ResponseStructure.message = 'Error al solicitar el token de restablecimiento de contraseña.';
-//     ResponseStructure.data = error.message;
-
-//     res.status(500).json(ResponseStructure);
-//   }
-// };
-
 module.exports = userController;
