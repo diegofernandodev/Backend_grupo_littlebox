@@ -8,6 +8,7 @@ const routesCategorias = require("../routes/categorias.routes");
 const routesTerceros = require("../routes/terceros.routes");
 const routesEmpresas = require("../routes/empresas.routes");
 const routesUsers = require("../routes/user.routes");
+const routesConsultas = require("../routes/consultas.routes");
 const routesNoMiddlewere = require("../routes/rutasNoMiddleware.routes");
 const routesLogin = require("../routes/login.routes");
 const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
@@ -15,10 +16,15 @@ const { seedCategorias } = require("../helpers/seed-categorias");
 const cors = require("cors");
 const { loginUser } = require("../controller/user.controller");
 require('dotenv').config();
+const path = require("path");
+
 
 // Configuración del servidor Express
 const appLittlebox = express();
 const port = 4000;
+
+// appLittlebox.set("view engine", "pug");
+// appLittlebox.set("views", path.join(__dirname, "views"));
 
 // Configuración de express-session
 appLittlebox.use(session({
@@ -43,6 +49,7 @@ appLittlebox.use(routesEgresos);
 appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
 appLittlebox.use(routesUsers);
+appLittlebox.use(routesConsultas);
 
 appLittlebox.set("port", process.env.PORT || port);
 

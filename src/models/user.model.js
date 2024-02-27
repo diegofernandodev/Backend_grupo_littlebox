@@ -8,32 +8,34 @@ const userSchema = new Schema({
     validator: (value) => {
       return typeof value === "string";
     },
-    message:
-      "El nombre de la categoria debe ser una cadena de texto",
+    message: "El nombre de la categoria debe ser una cadena de texto",
     minLength: 6,
     maxLength: 128,
   },
   password: {
     type: String,
-    required: [true, "La contraseña es requerida"],
+    required: [false, "La contraseña es requerida"],
     // minLength: 8,
     // validator: (value) => {
     //   return /[a-zA-Z0-9@#$%^&*_~]/.test(value);
     // },
     // message: "La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número y un símbolo",
   },
+
   email: {
     type: String,
     required: [true, "El correo electrónico es requerido"],
     validator: (value) => {
-      return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(value);
+      return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(
+        value,
+      );
     },
     message: "El correo electrónico no es válido",
   },
   empresaUser: {
     type: Schema.Types.ObjectId,
     ref: "Empresa",
-    required: [true, "La empresa es requerida"],
+    required: [false, "La empresa es requerida"],
   },
   // fechaCreacion: {
   //   type: Date,
@@ -69,7 +71,7 @@ const userSchema = new Schema({
   //   },
   //   message: "El teléfono debe ser un número",
   // },
-  imagenFirma:{
+  imagenFirma: {
     type: String,
     required: [true, "La imagen de la firma es requerida"],
   },
@@ -77,12 +79,16 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  estadoDeRegistro: { 
+  estadoDeRegistro: {
     type: String,
     enum: ["Pendiente", "Aprobado", "Rechazado"],
     default: "Pendiente",
-},
+  },
+  type: {
+    type: String,
+    enum: ["user"],
+    default: "user",
+  },
 });
 
-
-module.exports = model("User", userSchema,"usuariosEmpresas");
+module.exports = model("User", userSchema, "usuariosEmpresas");

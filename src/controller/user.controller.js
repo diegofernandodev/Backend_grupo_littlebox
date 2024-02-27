@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { randomPassword } = require("../helpers/passwordGenerator");
 
 const {
   guardarUsuario,
@@ -23,12 +24,12 @@ userController.guardarUsuario = async (req, res) => {
 
     // Obtener el tenantId del token
     // const tenantId = req.tenantId;
-    const tenantId = req.body.tenantId
-    const rolGuardado = await guardarUsuario(newUser, tenantId);
+    const tenantId = req.body.tenantId;
+    const userGuardado = await guardarUsuario(newUser, tenantId);
 
     ResponseStructure.status = 200;
     ResponseStructure.message = "Usuario guardado exitosamente";
-    ResponseStructure.data = rolGuardado;
+    ResponseStructure.data = userGuardado;
 
     res.status(200).send(ResponseStructure);
   } catch (error) {
@@ -47,12 +48,11 @@ userController.obtenerUsuarios = async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const listaUsers = await obtenerUsuarios(tenantId);
-    ResponseStructure.status = 200
+    ResponseStructure.status = 200;
     ResponseStructure.message = "Usuarios encontrados exitosamente";
     ResponseStructure.data = listaUsers;
     res.status(200).send(ResponseStructure);
   } catch (error) {
-
     ResponseStructure.status = 500;
     ResponseStructure.message = "Error al obtener usuarios";
     ResponseStructure.data = error.message;
@@ -73,7 +73,6 @@ userController.obtenerUsuarioPorId = async (req, res) => {
 
     res.status(200).json(ResponseStructure);
   } catch (error) {
-
     ResponseStructure.status = 404;
     ResponseStructure.message = "Usuario no encontrado";
     ResponseStructure.data = error.message;
@@ -114,10 +113,10 @@ userController.modificarUsuarioPorId = async (req, res) => {
       nuevosDatos,
     );
 
-    //la redireccion no funciona en tunderclient, pendiente usar el frontend para probar 
+    //la redireccion no funciona en tunderclient, pendiente usar el frontend para probar
     // Si hay una indicación de redirección, redirigir al usuario a la página de inicio de sesión
     if (redirectToLogin) {
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     ResponseStructure.status = 200;
@@ -134,74 +133,34 @@ userController.modificarUsuarioPorId = async (req, res) => {
   }
 };
 
-userController.cambiarEstadoRegistroUser = async (req, res)=>{
+userController.cambiarEstadoRegistroUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const nuevoEstado = req.body.estadoDeRegistro;  // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
+    const nuevoEstado = req.body.estadoDeRegistro; // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
     const tenantId = req.tenantId;
+    const randomPass = await randomPassword();
 
     const nuevoEstadoUser = await cambiarEstadoRegistroUser(
       userId,
       nuevoEstado,
       tenantId,
+      randomPass,
     );
 
     ResponseStructure.status = 200;
-      ResponseStructure.message = "Estado registro de usuario modificado exitosamemte";
-      ResponseStructure.data = nuevoEstadoUser;
-  
-      res.status(200).send(ResponseStructure);
+    ResponseStructure.message =
+      "Estado registro de usuario modificado exitosamemte";
+    ResponseStructure.data = nuevoEstadoUser;
+
+    res.status(200).send(ResponseStructure);
   } catch (error) {
     ResponseStructure.status = 400;
-      ResponseStructure.message = "Error al modificar estado  registro de usuario";
-      ResponseStructure.data = error.message;
-  
-      res.status(400).json(ResponseStructure);
+    ResponseStructure.message =
+      "Error al modificar estado  registro de usuario";
+    ResponseStructure.data = error.message;
+
+    res.status(400).json(ResponseStructure);
   }
-}
+};
 
-// userController.loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     // const tenantId = req.tenantId;
-
-//     // const result = await loginUser(email, password, tenantId);
-//     const result = await loginUser(email, password);
-
-//     ResponseStructure.status = 200;
-//     ResponseStructure.message = 'Login exitoso';
-//     ResponseStructure.data = result;
-
-//     res.status(200).json(ResponseStructure);
-//   } catch (error) {
-//     ResponseStructure.status = 500;
-//     ResponseStructure.message = 'Error al iniciar sesión';
-//     ResponseStructure.data = error.message;
-
-//     res.status(500).json(ResponseStructure);
-//   }
-// };
-
-// userController.resetPassword = async (req, res) => {
-//   try {
-//     const { email } = req.body;
-//     const tenantId = req.tenantId;
-
-//     const token = await resetPassword.generateToken(email, tenantId);
-//     await resetPassword.sendEmail(email, token);
-
-//     ResponseStructure.status = 200;
-//     ResponseStructure.message = 'Correo electrónico de restablecimiento de contraseña enviado correctamente.';
-//     ResponseStructure.data = { email };
-
-//     res.status(200).json(ResponseStructure);
-//   } catch (error) {
-//     ResponseStructure.status = 500;
-//     ResponseStructure.message = 'Error al solicitar el token de restablecimiento de contraseña.';
-//     ResponseStructure.data = error.message;
-
-//     res.status(500).json(ResponseStructure);
-//   }
-// };
-
-module.exports = userController
+module.exports = userController;

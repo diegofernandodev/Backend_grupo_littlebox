@@ -1,13 +1,14 @@
-const bcrypt = require('bcrypt');
-const User = require('../models/user.model');
+const bcrypt = require("bcrypt");
+const User = require("../models/user.model");
 const empresaModel = require("../models/empresas.Model");
 const rolModel = require("../models/rolesUser.Model");
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-const mail = require('@sendgrid/mail');
-const { tokenSign, verifyToken } = require("../helpers/generateToken")
+const mail = require("@sendgrid/mail");
+const { tokenSign, verifyToken } = require("../helpers/generateToken");
 const { sendEmail } = require("../helpers/sendMail");
+const { randomPassword } = require("../helpers/passwordGenerator");
 
 /**
  * Función para guardar un nuevo usuario en la base de datos.
@@ -20,23 +21,38 @@ const guardarUsuario = async (user, tenantId) => {
     // Asignar el tenantId al usuario
     user.tenantId = tenantId;
 
-    // Hashear la contraseña
-    user.password = await bcrypt.hash(user.password, 12);
-
     // Definir campos requeridos
-    const camposRequeridos = ['name', 'username', 'password', 'rol', 'estado'];
+    const camposRequeridos = ["name", "username", "rol", "estado"];
 
     // Validar campos requeridos en el objeto user
-    const tieneCamposRequeridos = camposRequeridos.every(campo => user[campo]);
+    const tieneCamposRequeridos = camposRequeridos.every(
+      (campo) => user[campo],
+    );
     if (!user || !tieneCamposRequeridos) {
-      throw new Error("El objeto user no es válido o no contiene campos requeridos");
+      throw new Error(
+        "El objeto user no es válido o no contiene campos requeridos",
+      );
     }
 
     // Crear nuevo usuario
     const newUser = new User(user);
 
+    await newUser.populate({
+      path: "rol",
+      model: rolModel,
+    });
+
     // Guardar el usuario
     const userSave = await newUser.save();
+    console.log("usuario: ", userSave);
+    console.log("rol de usuario: ", userSave.rol.nombre);
+    // Si el rol del usuario es "Administrador", enviar todos los datos
+    if (userSave.rol.nombre === "Administrador") {
+      const nuevoEstado = "Aprobado";
+      const userId = userSave._id;
+      // await sendEmail(userSave)
+      cambiarEstadoRegistroUser(userId, nuevoEstado, tenantId);
+    }
 
     return userSave;
   } catch (error) {
@@ -55,7 +71,9 @@ const obtenerUsuarios = async (tenantId, estado) => {
     const usersExisten = await User.exists({ tenantId });
 
     if (!usersExisten) {
-      throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es valido o no se encuentra en la base de datos",
+      );
     }
 
     // Construir la consulta
@@ -88,7 +106,9 @@ const obtenerUsuarioPorId = async (userId, tenantId) => {
     const userExistent = await User.findOne({ _id: userId, tenantId });
 
     if (!userExistent) {
-      throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es valido o no se encuentra en la base de datos",
+      );
     }
     const user = await User.findById({ _id: userId, tenantId })
       .populate({
@@ -102,8 +122,10 @@ const obtenerUsuarioPorId = async (userId, tenantId) => {
 
     return user;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error;
     }
@@ -118,25 +140,30 @@ const obtenerUsuarioPorId = async (userId, tenantId) => {
  */
 const eliminarUsuarioPorId = async (tenantId, userId) => {
   try {
-
     // Verificar que el tenantId coincide con el tenantId del usuario
     const userExistent = await User.findOne({ _id: userId, tenantId });
 
     if (!userExistent) {
-      throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es valido o no se encuentra en la base de datos",
+      );
     }
 
-    const usuarioEliminado = await User.findOneAndDelete({ _id: userId, tenantId });
+    const usuarioEliminado = await User.findOneAndDelete({
+      _id: userId,
+      tenantId,
+    });
     return usuarioEliminado;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error;
     }
   }
 };
-
 
 /**
  * Función para modificar un usuario por su ID y tenant.
@@ -150,7 +177,7 @@ const modificarUsuarioPorId = async (userId, token, nuevosDatos) => {
     // Decodificar el token para obtener la información del usuario (en este caso, userId, tenantId, email)
     const decodedToken = await verifyToken(token);
 
-    console.log('Datos recibidos:', nuevosDatos);
+    console.log("Datos recibidos:", nuevosDatos);
 
     // Verificar si se proporciona un nuevo password
     if (nuevosDatos.password) {
@@ -160,17 +187,15 @@ const modificarUsuarioPorId = async (userId, token, nuevosDatos) => {
 
     // Verificar si se proporciona un nuevo correo electrónico
     if (nuevosDatos.email && nuevosDatos.email !== decodedToken.email) {
-
       // El correo electrónico ha cambiado, redirigir al proceso de inicio de sesión
       return { redirectToLogin: true };
-
     }
 
     // El correo electrónico no ha cambiado, continuar con la actualización
     const usuarioModificado = await User.findOneAndUpdate(
       { _id: userId, tenantId: decodedToken.tenantId },
       { $set: nuevosDatos },
-      { new: true }
+      { new: true },
     );
 
     // Si no se encuentra el usuario, lanzar un error
@@ -180,86 +205,68 @@ const modificarUsuarioPorId = async (userId, token, nuevosDatos) => {
 
     return { usuarioModificado, newToken: null };
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontró en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontró en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
   }
 };
 
-//   const aprobarRechazarSolicitud = async (idSolicitud, nuevoEstado, usuario) => {
-//   const solicitud = await Solicitud.findById(idSolicitud);
-
-//   if (!solicitud) {
-//     throw new Error('Solicitud no encontrada');
-//   }
-
-//   if (solicitud.estado !== 'pendiente') {
-//     throw new Error('La solicitud ya ha sido procesada');
-//   }
-
-//   // Verificar si el usuario tiene el rol de administrador
-//   if (usuario.rol === 'administrador') {
-//     solicitud.estado = nuevoEstado;
-//     const solicitudActualizada = await solicitud.save();
-//     return solicitudActualizada;
-//   } else {
-//     throw new Error('Usuario no tiene permisos para aprobar/rechazar esta solicitud');
-//   }
-// };
-
+/**
+ * Función para cambiar el estado registro de un usuario por su ID y tenant.
+ * @param {string} userId - Identificador del usuario.
+ * @param {string} tenantId - Identificador del tenant.
+ * @returns {Promise<Object>} - Promesa que resuelve con el usuario modificado.
+ */
 const cambiarEstadoRegistroUser = async (userId, nuevoEstado, tenantId) => {
   try {
-    console.log("userId:", userId);
-    console.log("nuevoEstado:", nuevoEstado);
-    console.log("tenantId:", tenantId);
+    const userPendiente = await User.findOne({ _id: userId, tenantId });
 
-    const userPendiente = await User.findOne({ _id: userId, tenantId:tenantId });
-    console.log("datos usuario pendiente cambio estado", userPendiente);
     if (!userPendiente) {
-      throw new Error('usuario no encontrado');
+      throw new Error("Usuario no encontrado");
     }
 
-    // Obtener el nombre del estado actual 
     const nombreEstado = userPendiente.estadoDeRegistro;
-    console.log("nombre del estado", nombreEstado);
 
-    if (nombreEstado == 'Aprobado' || nombreEstado == 'Rechazado') {
-      throw new Error('La solicitud de registro ya ha sido procesada, se encuentra en estado: ', nombreEstado);
+    if (nombreEstado === nuevoEstado) {
+      console.log("El estado no ha cambiado. No se realizaron cambios.");
+      return; // No hay cambios, por lo tanto, no se devuelve ningún usuario
     }
 
-    // Actualizar estado 
+    if (nombreEstado === "Aprobado" || nombreEstado === "Rechazado") {
+      throw new Error(
+        `La solicitud de registro ya ha sido procesada, se encuentra en estado: ${nombreEstado}`,
+      );
+    }
+
     userPendiente.estadoDeRegistro = nuevoEstado;
-    const usuarioActualizado = await userPendiente.save();
 
-    if (nuevoEstado == userPendiente.estadoDeRegistro) {
-
-      try {
-        const datosMail = {
-          to: usuarioActualizado.email,
-          subject: `Registro exitoso usuario ${usuarioActualizado.name}`,
-          text: `¡Felicidades! ${usuarioActualizado.name} tu registro ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login`
-        }
-        const newEmail = await sendEmail(datosMail);
-        console.log("Correo electrónico enviado:", newEmail);
-
-      } catch (error) {
-        console.error("No se pudo enviar el email:", error);
-      }
-
+    if (nuevoEstado === "Aprobado") {
+      const randomPass = await randomPassword();
+      userPendiente.password = await bcrypt.hash(randomPass, 12);
     }
 
-    return usuarioActualizado
+    const usuarioActualizado = await userPendiente.save();
+    console.log("Usuario actualizado:", usuarioActualizado);
 
+    if (nuevoEstado === "Aprobado") {
+      await sendEmail(usuarioActualizado, randomPass);
+    }
+
+    return usuarioActualizado;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontró en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontró en la base de datos",
+      );
     } else {
-      throw error; // Propaga el error para que sea manejado en el controlador
+      throw error;
     }
   }
-}
+};
 
 module.exports = {
   guardarUsuario,

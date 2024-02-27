@@ -4,16 +4,20 @@ const terceroModel = require("../models/terceros.Model");
 const counterService = require("../services/counter.service");
 const estadoSolicitudModel = require("../models/estadosSolicitud.model");
 const Egreso = require("../models/egresos.Model");
-const { guardarEgreso,actualizarEgresoId } = require("../services/egresos.service");
+const {
+  guardarEgreso,
+  actualizarEgresoId,
+} = require("../services/egresos.service");
 
 const obtenerSolicitudes = async (tenantId) => {
   try {
-
     // Verificar que el tenantId coincide con el tenantId de las solicitudes
     const solicitudesExisten = await Solicitud.exists({ tenantId });
 
     if (!solicitudesExisten) {
-      throw new Error("TenantId proporcionado no es válido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es válido o no se encuentra en la base de datos",
+      );
     }
 
     // Obtener la lista de solicitudes
@@ -28,7 +32,7 @@ const obtenerSolicitudes = async (tenantId) => {
       })
       .populate({
         path: "estado",
-        model: estadoSolicitudModel
+        model: estadoSolicitudModel,
       });
 
     return solicitudes;
@@ -38,14 +42,17 @@ const obtenerSolicitudes = async (tenantId) => {
 };
 
 const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
-
   try {
-
     // Verificar que el tenantId coincide con el tenantId de la solicitud
-    const solicitudExistente = await Solicitud.findOne({ _id: solicitudId, tenantId });
+    const solicitudExistente = await Solicitud.findOne({
+      _id: solicitudId,
+      tenantId,
+    });
 
     if (!solicitudExistente) {
-      throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es valido o no se encuentra en la base de datos",
+      );
     }
     const solicitud = await Solicitud.findById({ _id: solicitudId, tenantId })
       .populate({
@@ -58,12 +65,14 @@ const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
       })
       .populate({
         path: "estado",
-        model: estadoSolicitudModel
+        model: estadoSolicitudModel,
       });
     return solicitud;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
@@ -77,7 +86,9 @@ const guardarSolicitud = async (solicitud, tenantId) => {
 
   // Validar que el objeto solicitud tenga la estructura correcta y campos requeridos
   if (!solicitud || !solicitud.detalle || !solicitud.valor) {
-    throw new Error("El objeto solicitud no es valido o no contiene campos requeridos");
+    throw new Error(
+      "El objeto solicitud no es valido o no contiene campos requeridos",
+    );
   }
 
   // Crear nueva solicitud
@@ -89,11 +100,14 @@ const guardarSolicitud = async (solicitud, tenantId) => {
   return solicitudGuardada;
 };
 
-const actualizarSolicitudId = async (tenantId, idSolicitudActual,tipoDoc) => {
+const actualizarSolicitudId = async (tenantId, idSolicitudActual, tipoDoc) => {
   // Incrementar la secuencia
-  const solicitudId = await counterService.incrementarSecuencia(tenantId,tipoDoc);
+  const solicitudId = await counterService.incrementarSecuencia(
+    tenantId,
+    tipoDoc,
+  );
   const filter = { _id: idSolicitudActual };
-  const dates = { solicitudId: solicitudId,tipoDoc };
+  const dates = { solicitudId: solicitudId, tipoDoc };
   await Solicitud.findOneAndUpdate(filter, dates);
   return solicitudId;
 };
@@ -101,55 +115,77 @@ const actualizarSolicitudId = async (tenantId, idSolicitudActual,tipoDoc) => {
 const eliminarSolicitudPorId = async (solicitudId, tenantId) => {
   try {
     // Verificar que el tenantId coincide con el tenantId de la solicitud
-    const solicitudExistente = await Solicitud.findOne({ _id: solicitudId, tenantId });
-
+    const solicitudExistente = await Solicitud.findOne({
+      _id: solicitudId,
+      tenantId,
+    });
+    console.log("solicitud existente", solicitudExistente);
     if (!solicitudExistente) {
-      throw new Error("TenantId proporcionado no coincide con ninguna Solicitud en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no coincide con ninguna Solicitud en la base de datos",
+      );
     }
 
-    const solicitudEliminada = await Solicitud.findOneAndDelete({ _id: solicitudId, tenantId });
+    const solicitudEliminada = await Solicitud.findOneAndDelete({
+      _id: solicitudId,
+      tenantId,
+    });
     return solicitudEliminada;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
   }
 };
 
-
-const modificarSolicitudPorId = async (solicitudId, nuevosDatos, tenantId) => {
+const modificarSolicitudPorId = async (
+  solicitudId,
+  nuevosDatos,
+  tenantId,
+  facturaUrl,
+) => {
   try {
     // Verificar que el _id de la solicitud y el tenantId coincidan
     const solicitudExistente = await Solicitud.findById(solicitudId).populate({
       path: "estado",
       model: estadoSolicitudModel,
     });
-
-    console.log("solicitud existente cambio ", solicitudExistente);
-
+    console.log("solicitudExistente", solicitudExistente);
     if (!solicitudExistente || solicitudExistente.tenantId !== tenantId) {
-      throw new Error("TenantId proporcionado no existe o no coincide con _id de la solicitud a modificar");
+      throw new Error(
+        "TenantId proporcionado no existe o no coincide con _id de la solicitud a modificar",
+      );
     }
 
     // Verificar si la solicitud ya está finalizada o rechazada
     const nombreEstado = solicitudExistente.estado?.nombre;
-    if (nombreEstado === 'finalizado' || nombreEstado === 'rechazado') {
-      throw new Error(`La solicitud está ${nombreEstado} y no se puede modificar`);
+    if (nombreEstado === "finalizado" || nombreEstado === "rechazado") {
+      throw new Error(
+        `La solicitud está ${nombreEstado} y no se puede modificar`,
+      );
     }
 
+    // Agregar la URL de la factura a los nuevos datos (si se adjuntó)
+    if (facturaUrl) {
+      nuevosDatos.facturaUrl = facturaUrl;
+      console.log("url de la factura", facturaUrl);
+    }
 
     // Realizar la actualización
     const solicitudModificada = await Solicitud.findByIdAndUpdate(
       solicitudId,
-      nuevosDatos,
-      { new: true }
+      { ...nuevosDatos },
+      { new: true }, // Opciones para devolver el documento actualizado
     ).populate({
       path: "estado",
       model: estadoSolicitudModel,
     });
 
+    console.log("solicitud modificada", solicitudModificada);
     // Si no se encuentra la solicitud, lanzar un error
     if (!solicitudModificada) {
       throw new Error("Solicitud no encontrada");
@@ -157,47 +193,56 @@ const modificarSolicitudPorId = async (solicitudId, nuevosDatos, tenantId) => {
 
     return solicitudModificada;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontró en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontró en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
   }
 };
 
-
 const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
   try {
     // Verificar que el _id de la solicitud y el tenantId coincidan
-    const solicitudExistente = await Solicitud.findOne({ _id: solicitudId, tenantId })
-      .populate({
-        path: "estado",
-        model: estadoSolicitudModel
-      });
+    const solicitudExistente = await Solicitud.findOne({
+      _id: solicitudId,
+      tenantId,
+    }).populate({
+      path: "estado",
+      model: estadoSolicitudModel,
+    });
 
     console.log("solicitud existente", solicitudExistente);
 
     if (!solicitudExistente) {
-      throw new Error('Solicitud no encontrada');
+      throw new Error("Solicitud no encontrada");
     }
 
     // Obtener el nombre del estado actual
     const nombreEstado = solicitudExistente.estado.nombre;
     console.log("nombre del estado", nombreEstado);
 
-    if (nombreEstado == 'finalizado') {
-      throw new Error('La solicitud ya ha sido procesada, no se puede cambiar el estado finalizado');
+    if (nombreEstado == "finalizado") {
+      throw new Error(
+        "La solicitud ya ha sido procesada, no se puede cambiar el estado finalizado",
+      );
     }
 
     // Actualizar estado de la solicitud
     solicitudExistente.estado = nuevoEstadoId;
     const solicitudActualizada = await solicitudExistente.save();
 
-    console.log("este es el nuevo id del estado de la solicitud ", solicitudActualizada.estado._id, "este es el nuevoEstadoId pasado como parametro: ", nuevoEstadoId);
+    console.log(
+      "este es el nuevo id del estado de la solicitud ",
+      solicitudActualizada.estado._id,
+      "este es el nuevoEstadoId pasado como parametro: ",
+      nuevoEstadoId,
+    );
 
     // Verificar si el nuevo estado es "finalizado"
     if (nuevoEstadoId == solicitudActualizada.estado._id) {
-
       // Crear egreso de caja utilizando los datos de la solicitud
       const egreso = new Egreso({
         tenantId: solicitudActualizada.tenantId,
@@ -207,19 +252,31 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
         detalle: solicitudActualizada.detalle,
         categoria: solicitudActualizada.categoria,
         valor: solicitudActualizada.valor,
-        factura: solicitudActualizada.factura,
+        factura: solicitudActualizada.facturaUrl,
         // Otros campos necesarios para el egreso de caja...
       });
 
-      console.log("egreso creado de solicitud:", egreso, "tenantId de la solicitud:", solicitudActualizada.tenantId);
+      console.log(
+        "egreso creado de solicitud:",
+        egreso,
+        "tenantId de la solicitud:",
+        solicitudActualizada.tenantId,
+      );
 
       try {
         // Guardar el egreso de caja
-        const egresoGuardado = await guardarEgreso(egreso, solicitudActualizada.tenantId);
+        const egresoGuardado = await guardarEgreso(
+          egreso,
+          solicitudActualizada.tenantId,
+        );
         const idCurrent = egresoGuardado._id;
-        const tipoDoc = "egreso"
+        const tipoDoc = "egreso";
 
-        const egresoId = await actualizarEgresoId(solicitudActualizada.tenantId, idCurrent,tipoDoc);
+        const egresoId = await actualizarEgresoId(
+          solicitudActualizada.tenantId,
+          idCurrent,
+          tipoDoc,
+        );
         egresoGuardado.egresoId = egresoId;
 
         console.log("egreso guardado:", egresoGuardado);
@@ -232,19 +289,16 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
     }
 
     return solicitudActualizada;
-
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontró en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontró en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
   }
 };
-
-
-
-
 
 module.exports = {
   obtenerSolicitudes,
@@ -253,5 +307,5 @@ module.exports = {
   actualizarSolicitudId,
   eliminarSolicitudPorId,
   modificarSolicitudPorId,
-  cambiarEstadoSolicitud
+  cambiarEstadoSolicitud,
 };

@@ -3,4 +3,5 @@ const ResponseStructure = {
   message: "success",
   data: {},
 };
+
 module.exports = { ResponseStructure };
