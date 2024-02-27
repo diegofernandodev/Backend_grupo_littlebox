@@ -1,50 +1,21 @@
-const { Router } = require("express");
-const router = Router();
-const {
-    obtenerUsuarios,
-    obtenerUsuarioPorId,
-    eliminarUsuarioPorId,
-    modificarUsuarioPorId,
-    cambiarEstadoRegistroUser,
-} = require("../controller/user.controller");
-const{resetPassword, restablecerPassword, logout} = require("../controller/login.controller")
+const express = require('express');
+const upload = require('../middleware/multerMiddleware');
+const validarTokenMiddleware = require('../middleware/userAuthentication')
+const checkRol = require('../middleware/roleAuth')
+const { postUser, postLogin, getUsers, getUserId,activeUser, inactiveUser, denyUser, changePassword, solicitarRestablecimiento, restablecerContraseña, logout} = require('../controller/user.controller');
 
-// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
-const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
-const checkRoleAuth = require('../middleware/roleAuth');
+const routes = express.Router();
 
-router.get("/", (req, res) => {
-  res.send("LittleBox");
-});
+routes.post('/registrer', upload.single('imgfirme'),   postUser);
+routes.post('/iniciarSesion', postLogin);
+routes.get('/getUsers/:tenantId',validarTokenMiddleware , checkRol(['Administrador','Gerente']),getUsers);
+routes.put('/userActive/:id', validarTokenMiddleware , checkRol(['Administrador', 'Gerente']),  activeUser);
+routes.put('/userInactive/:id', validarTokenMiddleware , checkRol(['Gerente']) ,inactiveUser);
+routes.put('/userDeny/:id', validarTokenMiddleware , checkRol(['Gerente']),  denyUser);
+routes.put('/changePassword/:userId',  changePassword);
+routes.post('/solicitar-restablecimiento', solicitarRestablecimiento);
+routes.post('/restablecer-password', restablecerContraseña);
+routes.post('/cerrar_sesion',validarTokenMiddleware,  logout)
+routes.get('/getId/:userId', getUserId)
 
-// Ruta para obtener todos los usuarios
-router.get("/obtenerTodosLosUsuarios", verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador']), obtenerUsuarios);
-
-// Ruta para obtener un usuario por su ID
-router.get("/obtenerUsuario/:id",verificarTokenMiddleware, checkRoleAuth(['gerente', 'administrador', 'colaborador']), obtenerUsuarioPorId);
-
-// Ruta para modificar un usuario por su ID
-router.put("/modificarUsuario",verificarTokenMiddleware, checkRoleAuth(['gerente', 'administrador', 'colaborador']), modificarUsuarioPorId);
-
-// Ruta para eliminar un usuario por su ID
-router.delete("/eliminarUsuario/:id",verificarTokenMiddleware, checkRoleAuth(['gerente']), eliminarUsuarioPorId);
-
-// Ruta para cambiar estado de registro de empresa
-router.put("/actualizarEstadousuario/:id", verificarTokenMiddleware,checkRoleAuth(['Gerente']),cambiarEstadoRegistroUser);
-
-// // Ruta para guardar una nuevo usuario
-// router.post("/guardarUsuario", guardarUsuario);
-
-
-// Ruta para enviar correo de restablecer contraseña
-router.post("/resetPassword",verificarTokenMiddleware, resetPassword);
-
-
-// Ruta para restablecer la contraseña
-router.put("/newPassword",verificarTokenMiddleware, restablecerPassword);
-
-// Ruta para cerrar sesion
-router.post("/logout",verificarTokenMiddleware, logout);
-
-
-module.exports = router;
+module.exports = routes;
