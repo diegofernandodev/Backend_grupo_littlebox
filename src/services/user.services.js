@@ -21,7 +21,7 @@ const createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(defaultPassword, 12);
 
     // Buscamos el rol del usuario por su ID
-    const role = await Role.findOne({ rol: req.body.rol });
+    const role = await User.findOne({ rol: req.body.rol });
 
     // Establecer el estado del usuario según el rol
     let status = 'activo'; // Por defecto, el estado es "activo"
@@ -227,7 +227,7 @@ function crearToken(user) {
 
 
 const getUsers = async (tenantId) => {
-  return await User.find({tenantId: tenantId, rol: { $ne: 'Gerente'} });
+  return await User.find({tenantId: tenantId, rol: { $ne: 'Gerente' } });
 };
 
 
