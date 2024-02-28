@@ -1,166 +1,210 @@
-const mongoose = require("mongoose");
-const { randomPassword } = require("../helpers/passwordGenerator");
+const { createUser, 
+  loginUser, 
+  getUsers,
+  getUserById,
+  activeUser,
+  inactiveUser,
+  DenyUser,
+  changeUserPassword,
+  generarCodigoRestablecimiento,
+  enviarCorreoRestablecimiento,
+  restablecerContraseña,
+  logout
+  } = require('../services/user.services');
 
-const {
-  guardarUsuario,
-  obtenerUsuarios,
-  obtenerUsuarioPorId,
-  eliminarUsuarioPorId,
-  modificarUsuarioPorId,
-  cambiarEstadoRegistroUser,
-  loginUser,
-  resetPassword,
-} = require("../services/user.service");
-const { ResponseStructure } = require("../helpers/ResponseStructure");
+const User = require('../models/user.model');
 
-const userController = {};
+const companyModel = require('../models/compay.model')
 
-userController.guardarUsuario = async (req, res) => {
-  try {
-    const newUser = {
-      ...req.body,
-      rol: req.body.rol,
-    };
+const rolModel= require ('../models/roles.model')
+const bcrypt = require('bcrypt');
+const ResponseStructure = require('../helpers/ResponseStructure')
 
-    // Obtener el tenantId del token
-    // const tenantId = req.tenantId;
-    const tenantId = req.body.tenantId;
-    const userGuardado = await guardarUsuario(newUser, tenantId);
 
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Usuario guardado exitosamente";
-    ResponseStructure.data = userGuardado;
 
-    res.status(200).send(ResponseStructure);
-  } catch (error) {
-    const status = error instanceof mongoose.Error.ValidationError ? 400 : 500;
 
-    ResponseStructure.status = status;
-    ResponseStructure.message = "Error al guardar el usuario";
-    ResponseStructure.data = {
-      error: error.message,
-    };
 
-    res.status(status).json(ResponseStructure);
-  }
+const controller = {};
+
+//crear usuario 
+controller.postUser = async (req, res) => {
+  await createUser(req, res);
 };
-userController.obtenerUsuarios = async (req, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const listaUsers = await obtenerUsuarios(tenantId);
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Usuarios encontrados exitosamente";
-    ResponseStructure.data = listaUsers;
-    res.status(200).send(ResponseStructure);
-  } catch (error) {
-    ResponseStructure.status = 500;
-    ResponseStructure.message = "Error al obtener usuarios";
-    ResponseStructure.data = error.message;
 
-    res.status(500).json(ResponseStructure);
+//activar usuario
+controller.activeUser = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const activedUser = await activeUser(userId); 
+    res.status(200).json(activedUser);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
-userController.obtenerUsuarioPorId = async (req, res) => {
+//inactivar
+controller.inactiveUser = async (req, res) => {
+  const userId = req.params.id;
   try {
-    const userId = req.params.id;
-    const tenantId = req.tenantId;
-    const user = await obtenerUsuarioPorId(userId, tenantId);
-
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Usuario encontrado exitosamente";
-    ResponseStructure.data = user;
-
-    res.status(200).json(ResponseStructure);
+    const inactivedUser = await inactiveUser(userId); 
+    res.status(200).json(inactivedUser);
   } catch (error) {
-    ResponseStructure.status = 404;
-    ResponseStructure.message = "Usuario no encontrado";
-    ResponseStructure.data = error.message;
-
-    res.status(404).json(ResponseStructure);
+    res.status(500).json({ error: error.message });
   }
 };
 
-userController.eliminarUsuarioPorId = async (req, res) => {
+//denegar
+
+//inactivar
+controller.denyUser = async (req, res) => {
+  const userId = req.params.id;
   try {
-    const userId = req.params.id;
-    const tenantId = req.tenantId;
-    const usuarioEliminado = await eliminarUsuarioPorId(tenantId, userId);
-
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Usuario eliminado exitosamente";
-    ResponseStructure.data = usuarioEliminado;
-
-    res.status(200).send(ResponseStructure);
+    const deniedUser = await DenyUser(userId); 
+    res.status(200).json(deniedUser);
   } catch (error) {
-    ResponseStructure.status = 500;
-    ResponseStructure.message = "Error al eliminar el usuario";
-    ResponseStructure.data = error.message;
-
-    res.status(500).json(ResponseStructure);
+    res.status(500).json({ error: error.message });
   }
 };
 
-userController.modificarUsuarioPorId = async (req, res) => {
+//iniciar sesion
+controller.postLogin = async (req, res) => {
+  await loginUser(req, res);
+};
+
+
+
+controller.getUsers = async (req, res) => {
   try {
-    const userId = req.params.id;
-    const nuevosDatos = req.body;
-    const token = req.headers.authorization;
+    const { tenantId } = req.params;
 
-    const { usuarioModificado, redirectToLogin } = await modificarUsuarioPorId(
-      userId,
-      token,
-      nuevosDatos,
-    );
-
-    //la redireccion no funciona en tunderclient, pendiente usar el frontend para probar
-    // Si hay una indicación de redirección, redirigir al usuario a la página de inicio de sesión
-    if (redirectToLogin) {
-      return res.redirect("/login");
+    let query = { tenantId: tenantId };
+    
+    // Si el rol es "gerente", listar usuarios en estado "activo"
+    const gerenteRole = await rolModel.findOne({ rol: 'Administrador' });
+    if (gerenteRole) {
+      query.rol = gerenteRole._id;
+      query.status = 'activo';
+    } else {
+      query.status = 'pendiente';
     }
 
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Usuario modificado exitosamente";
-    ResponseStructure.data = usuarioModificado;
-
-    res.status(200).send(ResponseStructure);
-  } catch (error) {
-    ResponseStructure.status = 400;
-    ResponseStructure.message = "Error al modificar el usuario";
-    ResponseStructure.data = error.message;
-
-    res.status(400).json(ResponseStructure);
+    const listUsers = await getUsers(tenantId); // Llama a la función getUsers para obtener usuarios específicos para el tenantId
+    
+    res.json(listUsers); 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-};
+}
 
-userController.cambiarEstadoRegistroUser = async (req, res) => {
+
+ 
+//usuario por id
+controller.getUserId= async (req, res) => {
   try {
-    const userId = req.params.id;
-    const nuevoEstado = req.body.estadoDeRegistro; // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
-    const tenantId = req.tenantId;
-    const randomPass = await randomPassword();
-
-    const nuevoEstadoUser = await cambiarEstadoRegistroUser(
-      userId,
-      nuevoEstado,
-      tenantId,
-      randomPass,
-    );
-
-    ResponseStructure.status = 200;
-    ResponseStructure.message =
-      "Estado registro de usuario modificado exitosamemte";
-    ResponseStructure.data = nuevoEstadoUser;
-
-    res.status(200).send(ResponseStructure);
+    const userId = req.params.userId; // Obtener el ID del usuario de los parámetros de la solicitud
+    const user = await getUserById(userId); // Llamar al servicio para obtener el usuario por ID
+    res.json({ user }); // Enviar el usuario como respuesta
   } catch (error) {
-    ResponseStructure.status = 400;
-    ResponseStructure.message =
-      "Error al modificar estado  registro de usuario";
-    ResponseStructure.data = error.message;
-
-    res.status(400).json(ResponseStructure);
+    console.error('Error al obtener el usuario por ID:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
-module.exports = userController;
+
+// Cambiar contraseña
+controller.changePassword = async (req, res) => {
+  const userId = req.params.userId; // Corregir aquí
+  const { newPassword } = req.body;
+  try {
+    await changeUserPassword(userId, newPassword);
+    res.status(200).json({ message: 'Contraseña cambiada exitosamente', userId });
+    } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+//restablecer contraseña
+
+controller.solicitarRestablecimiento = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const usuario = await User.findOne({ email: email });
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const codigoRestablecimiento = generarCodigoRestablecimiento();
+    usuario.resetCode = codigoRestablecimiento;
+    // Establecer la expiración del código de restablecimiento (por ejemplo, 1 hora)
+    usuario.resetExpires = Date.now() + 3600000; // 1 hora en milisegundos
+    await usuario.save();
+
+    await enviarCorreoRestablecimiento(email, codigoRestablecimiento);
+
+    res.json({ success: 'Solicitud de restablecimiento enviada con éxito' });
+  } catch (error) {
+    console.error('Error al solicitar restablecimiento:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+controller.restablecerContraseña = async (req, res) => {
+  try {
+    const { email, codigo, nuevaContraseña } = req.body;
+
+    console.log(`Solicitud de restablecimiento de contraseña para ${email} con código ${codigo}`);
+
+    const usuario = await User.findOne({ email: email, resetCode: codigo });
+
+    if (!usuario) {
+      return res.status(400).json({ error: 'El código de restablecimiento proporcionado es inválido.' });
+    }
+
+    // Verificar si el código ha caducado
+    if (usuario.resetExpires < Date.now()) {
+      return res.status(400).json({ error: 'El código de restablecimiento ha caducado. Solicita un nuevo restablecimiento.' });
+    }
+
+    // Restablecer la contraseña y limpiar el código
+    usuario.password = await bcrypt.hash(nuevaContraseña, 12);
+    usuario.resetCode = null;
+    usuario.resetExpires = null;
+    usuario.firstLogin = false;
+
+    await usuario.save();
+
+    console.log(`Contraseña restablecida con éxito para ${email}`);
+    res.json({ success: 'Contraseña restablecida con éxito' });
+  } catch (error) {
+    console.error('Error al restablecer la contraseña:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
+};
+
+
+
+//cerrar sesion
+controller.logout =async(req,res)=>{
+  try {
+    const token = req.headers.authorization;
+    // Realizar el logout usando el servicio
+    const result = await logout(token);
+    // Respondemos con éxito
+    ResponseStructure.status = 200;
+    ResponseStructure.message = 'Logout exitoso';
+    ResponseStructure.data = result;
+    res.status(200).json(ResponseStructure);
+  } catch (error) {
+    // Manejar errores
+    ResponseStructure.status = 500;
+    ResponseStructure.message = 'Error al cerrar sesión';
+    ResponseStructure.data = error.message;
+    res.status(500).json(ResponseStructure);
+  }
+}
+
+module.exports = controller;

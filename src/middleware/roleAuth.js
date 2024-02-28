@@ -1,55 +1,52 @@
-const { verifyToken } = require("../helpers/generateToken");
-const userModel = require("../models/user.model");
-const rolUsuario = require("../models/rolesUser.Model");
+// const Role = require('../models/roles.model'); // Importa el modelo de la colección de roles
 
-const checkRoleAuth = (allowedRoles) => async (req, res, next) => {
-  try {
-    // Obtener el token desde el encabezado de autorización
-    const token = req.headers.authorization.split(" ").pop();
+// const checkRol = (rolesPermitidos) => {
+//   return async (req, res, next) => {
+//     try {
+//       // Verifica si el usuario tiene un rol
+//       if (!req.user || !req.user.rol) {
+//         return res.status(403).json({ error: 'Acceso prohibido' });
+//       }
 
-    // Verificar el token y obtener los datos del usuario
-    const tokenData = await verifyToken(token);
+//       // Consulta el nombre del rol correspondiente al ObjectId
+//       const role = await Role.findById(req.user.rol);
+//       if (!role || !role.nameRol) {
+//         return res.status(403).json({ error: 'Acceso prohibido' });
+//       }
 
-    console.log("datos del tokenData", tokenData);
+//       // Verifica si el nombre del rol está en los roles permitidos
+//       if (rolesPermitidos.includes(role.nameRol)) {
+//         // Si el rol es válido, permite continuar con la solicitud
+//         next();
+//       } else {
+//         // Si el rol no es válido, devuelve un error de acceso prohibido
+//         return res.status(403).json({ error: 'Acceso prohibido' });
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       return res.status(500).json({ error: 'Error en validar el rol' });
+//     }
+//   };
+// };
 
-    if (!tokenData) {
-      // Si el token no es válido o caducado, devolver un error
-      res.status(401).json({ error: "Token inválido o caducado." });
-      return;
-    }
 
-    const userData = await userModel.findById(tokenData.userId).populate({
-      path: "rol",
-      model: rolUsuario,
-    });
+const checkRol = (rolesPermitidos) => {
+  return (req, res, next) => {
+    try {
+      // Verifica si el usuario tiene un rol y si está incluido en los roles permitidos
+      if (!req.user || !req.user.rol || !rolesPermitidos.includes(req.user.rol)) {
+        return res.status(403).json({ error: 'Acceso prohibido' });
+      }
 
-    if (!userData) {
-      // Si no se encuentra el usuario, devolver un error
-      res.status(404).json({ error: "Usuario no encontrado." });
-      return;
-    }
-
-    // Verificar si el rol del usuario está permitido
-    if (userData.rol && allowedRoles.includes(userData.rol.nombre)) {
-      // Si el rol está permitido, permitir el acceso a la ruta
+      // Si el rol es válido, permite continuar con la solicitud
       next();
-    } else {
-      // Si el rol no está permitido o no se encuentra, devolver un error
-      const rolActual =
-        userData.rol && userData.rol.nombre
-          ? userData.rol.nombre
-          : "no asignado";
-      res
-        .status(403)
-        .json({
-          error: `No tienes permisos para acceder a esta ruta. Rol actual: ${rolActual}`,
-        });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Error en validar el rol' });
     }
-  } catch (error) {
-    console.error(error);
-    // Si hay algún otro error, devolver un error genérico
-    res.status(500).json({ error: "Error interno del servidor." });
-  }
+  };
 };
 
-module.exports = checkRoleAuth;
+
+
+module.exports = checkRol;
