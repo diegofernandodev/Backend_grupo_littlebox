@@ -25,11 +25,13 @@ const createUser = async (req, res) => {
 
     // Establecer el estado del usuario según el rol
     let status = 'activo'; // Por defecto, el estado es "activo"
-if (role && role.rol !== 'SuperUsuario')
-if(role && role.rol !== 'Administrador')
-{
-  status = 'pendiente'; // Si no es "SuperUsuario" ni "Contador", establecemos el estado como "pendiente"
-}
+    if (role && role.rol === 'Gerente') {
+      status = 'pendiente'; // Si es "Gerente", establecemos el estado como "pendiente"
+    } else if (role && role.rol === 'Colaborador') {
+      status = 'pendiente'; // Si es "Colaborador", establecemos el estado como "pendiente"
+    }
+    
+
 
     // Crear el usuario
     const user = await User.create({
@@ -187,6 +189,11 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    // Verificar si el estado del usuario es activo
+    if (user.status !== 'activo') {
+      return res.status(401).json({ error: 'Su cuenta está inactiva.' });
+    }
+
     const pass = await bcrypt.compare(req.body.password, user.password);
     if (!pass) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
@@ -227,7 +234,7 @@ function crearToken(user) {
 
 
 const getUsers = async (tenantId) => {
-  return await User.find({tenantId: tenantId, rol: { $ne: 'Gerente' } });
+  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' }, status: 'activo' });
 };
 
 
@@ -357,6 +364,16 @@ const logout = async (token) => {
     throw new Error(`Error al cerrar sesión: ${error.message}`);
   }
 }
+// Función para editar datos de usuario
+const editUser = async (userId, newData) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, newData, { new: true });
+    return updatedUser;
+  } catch (error) {
+    throw new Error('Error al editar datos de usuario: ' + error.message);
+  }
+};
+
 
 
 module.exports = {
@@ -371,5 +388,6 @@ module.exports = {
   generarCodigoRestablecimiento,
   enviarCorreoRestablecimiento,
   restablecerContraseña,
-  logout
+  logout,
+  editUser
 };

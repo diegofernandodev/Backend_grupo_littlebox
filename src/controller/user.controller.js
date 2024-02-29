@@ -9,7 +9,8 @@ const { createUser,
   generarCodigoRestablecimiento,
   enviarCorreoRestablecimiento,
   restablecerContraseña,
-  logout
+  logout,
+  editUser
   } = require('../services/user.services');
 
 const User = require('../models/user.model');
@@ -206,5 +207,18 @@ controller.logout =async(req,res)=>{
     res.status(500).json(ResponseStructure);
   }
 }
+// Función para editar datos de usuario
+controller.editUsered = async (req, res) => {
+  const userId = req.params.userId;
+  const newData = req.body;
+  try {
+    const updatedUser = await editUser(userId, newData);
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Error al editar datos de usuario:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
 
 module.exports = controller;

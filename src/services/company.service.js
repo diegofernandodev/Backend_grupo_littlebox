@@ -125,7 +125,7 @@ const approveAssociatedManagers = async (tenantId) => {
 const activeCompany = async (companyId) => {
   try {
     // Aprobar la empresa
-    const company = await Company.findByIdAndUpdate(companyId, { estado: 'activo' });
+    const company = await Company.findByIdAndUpdate(companyId, { estado: 'aprobado' });
 
     
     const updatedCompany = await Company.findById(companyId);
@@ -240,7 +240,7 @@ const disableCompany = async (companyId) => {
 const getCompanies = async () => {
   try {
     
-    const approvedCompanies = await Company.find({ estado: 'aprobado' && 'activo'});
+    const approvedCompanies = await Company.find({ estado: 'aprobado'});
     return approvedCompanies;
   } catch (error) {
     throw new Error("Error al obtener las empresas aprobadas: " + error.message);

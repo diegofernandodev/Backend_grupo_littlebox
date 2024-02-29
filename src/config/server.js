@@ -32,6 +32,7 @@ const port = 4000;
 
 appLittlebox.use(express.json()); // Habilitar el uso de JSON en las solicitudes HTTP
 appLittlebox.use(cors()); // Configuración de CORS para permitir solicitudes desde otros dominios
+appLittlebox.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Rutas del servidor
