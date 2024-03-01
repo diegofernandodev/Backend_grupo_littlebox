@@ -1,11 +1,13 @@
 const ingresadosModel = require("../models/notifyingresadosModel")
 
-const obtenerIngresados = async () => {
+const obtenerIngresados = async (_id,tenandId) => {
     return await ingresadosModel.find()
+    .where('_idTenant')
+    .equals(tenandId)
 }
-const eliminarNotificacion = async (id) => {
+const eliminarNotificacion = async (_id, tenandId) => {
     try {
-      const vehiculo = await ingresadosModel.findOne({ _id: id });
+      const vehiculo = await ingresadosModel.findOne({ _id: id, tenandId });
       if (vehiculo) {
         await ingresadosModel.findOneAndDelete({ _id: id });
         return "Notificación eliminado con exito";

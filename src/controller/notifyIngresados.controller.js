@@ -13,7 +13,11 @@ controlador.obtenerNotification = async (req, res) => {
 controlador.nuevaNotification = async (req, res) => {
     try{
         const body = req.body;
-        const nuevaNotification = new ingresadosMoodel(body)
+        const tenantId = req.tenantId;
+        const username = req.username;
+        const nuevaNotification = new ingresadosMoodel(body, tenantId, username)
+        body.tenantId = tenantId
+        body.username = username
 
         await nuevaNotification.save();
 
@@ -39,7 +43,8 @@ controlador.nuevaNotification = async (req, res) => {
 }
 controlador.eliminarNotificacion = async (req, res) => {
     const id = req.params.id;
-    const response = await eliminarNotificacion(id);
+    const tenantId = req.tenantId;
+    const response = await eliminarNotificacion(id, tenantId);
     res.send(response);
 };
 

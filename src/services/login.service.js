@@ -96,9 +96,9 @@ const resetPassword = {
    * @returns {Promise<string>} - Token de restablecimiento de contraseña.
    * @throws {Error} - Se lanza un error si el usuario no se encuentra o si ocurre un error durante el proceso.
    */
-  generateToken: async (email, tenantId) => {
+  generateToken: async (email, tenantId, username) => {
     try {
-      const user = await User.findOne({ email, tenantId });
+      const user = await User.findOne({ email, tenantId, username});
 
       if (!user) {
         throw new Error('Usuario no encontrado.');
