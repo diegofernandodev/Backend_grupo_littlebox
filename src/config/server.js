@@ -11,7 +11,7 @@ const routesConsultas = require("../routes/consultas.routes");
 const routesLogin = require("../routes/login.routes");
 const companys = require("../routes/company.routes")
 const cors = require("cors");
-
+const bodyParser = require('body-parser');
 require('dotenv').config();
 const path = require("path");
 
@@ -20,6 +20,9 @@ const path = require("path");
 const appLittlebox = express();
 const port = 4000;
 
+
+appLittlebox.use(bodyParser.json({ limit: '50mb' })); // Increase limit to 50MB
+appLittlebox.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // appLittlebox.set("view engine", "pug");
 // appLittlebox.set("views", path.join(__dirname, "views"));
 
