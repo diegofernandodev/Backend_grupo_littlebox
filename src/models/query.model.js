@@ -1,6 +1,9 @@
 const { Schema, model } = require('mongoose');
 
 const querySchema = new Schema({
+    tenantId:{type: String,
+        required: [true, 'TenantId is required.']
+    },
     
     identifier: { type: Number,
         required: [true, 'Identifier is required.']
