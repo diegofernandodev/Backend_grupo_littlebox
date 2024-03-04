@@ -9,8 +9,9 @@ const {
   cambiarEstadoSolicitud,
 } = require("../controller/solicitud.controller");
 
-// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
-const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+
+// const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
 const upload = require("../middleware/adjFacturaMdw");
 
@@ -22,7 +23,7 @@ router.get("/", (req, res) => {
 router.get(
   "/obtenerTodasLasSolicitudes",
   verificarTokenMiddleware,
-  checkRoleAuth(["Gerente", "administrador", "colaborador"]),
+  checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
   obtenerSolicitudes,
 );
 
@@ -30,7 +31,7 @@ router.get(
 router.get(
   "/obtenerSolicitud/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["administrador", "administrador", "colaborador"]),
+  checkRoleAuth(["Administrador", "Gerente", "Colaborador"]),
   obtenerSolicitudesPorId,
 );
 

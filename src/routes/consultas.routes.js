@@ -4,7 +4,8 @@ const router = Router();
 const {movimientoDeCajaMenor} = require("../controller/consultas.controller");
 
 
-const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
+// const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require('../middleware/roleAuth');
 
 

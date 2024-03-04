@@ -8,7 +8,8 @@ const {
   actualizarEstadoEmpresa,
 } = require("../controller/empresas.controller");
 
-const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+// const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
 
 router.get("/", (req, res) => {

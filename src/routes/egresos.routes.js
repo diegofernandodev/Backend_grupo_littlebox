@@ -8,8 +8,9 @@ const {
   guardarEgreso,
 } = require("../controller/egresos.controller");
 
-// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
-const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+
+// const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
 
 router.get("/", (req, res) => {

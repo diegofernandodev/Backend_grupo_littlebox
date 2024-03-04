@@ -142,6 +142,69 @@ const eliminarSolicitudPorId = async (solicitudId, tenantId) => {
   }
 };
 
+// const modificarSolicitudPorId = async (
+//   solicitudId,
+//   nuevosDatos,
+//   tenantId,
+//   facturaUrl,
+// ) => {
+//   try {
+//     // Verificar que el _id de la solicitud y el tenantId coincidan
+//     const solicitudExistente = await Solicitud.findById(solicitudId).populate({
+//       path: "estado",
+//       model: estadoSolicitudModel,
+//     });
+//     console.log("solicitudExistente", solicitudExistente);
+//     if (!solicitudExistente || solicitudExistente.tenantId !== tenantId) {
+//       throw new Error(
+//         "TenantId proporcionado no existe o no coincide con _id de la solicitud a modificar",
+//       );
+//     }
+
+//     console.log("estado de solicitud existente ", solicitudExistente.estado?.nombre);
+
+//     // Verificar si la solicitud ya está finalizada o rechazada
+//     const nombreEstado = solicitudExistente.estado?.nombre;
+//     if (nombreEstado === "finalizado" || nombreEstado === "rechazado") {
+//       throw new Error(
+//         `La solicitud está ${nombreEstado} y no se puede modificar`,
+//       );
+//     }
+
+//     // Agregar la URL de la factura a los nuevos datos (si se adjuntó)
+//     if (facturaUrl) {
+//       nuevosDatos.facturaUrl = facturaUrl;
+//       console.log("url de la factura", facturaUrl);
+//     }
+
+//     // Realizar la actualización
+//     const solicitudModificada = await Solicitud.findByIdAndUpdate(
+//       solicitudId,
+//       { ...nuevosDatos },
+//       { new: true }, // Opciones para devolver el documento actualizado
+//     ).populate({
+//       path: "estado",
+//       model: estadoSolicitudModel,
+//     });
+
+//     console.log("solicitud modificada", solicitudModificada);
+//     // Si no se encuentra la solicitud, lanzar un error
+//     if (!solicitudModificada) {
+//       throw new Error("Solicitud no encontrada");
+//     }
+
+//     return solicitudModificada;
+//   } catch (error) {
+//     if (error.name === "CastError" && error.path === "_id") {
+//       throw new Error(
+//         "_id proporcionado no es válido o no se encontró en la base de datos",
+//       );
+//     } else {
+//       throw error; // Propaga el error para que sea manejado en el controlador
+//     }
+//   }
+// };
+
 const modificarSolicitudPorId = async (
   solicitudId,
   nuevosDatos,
@@ -154,12 +217,16 @@ const modificarSolicitudPorId = async (
       path: "estado",
       model: estadoSolicitudModel,
     });
+
     console.log("solicitudExistente", solicitudExistente);
+
     if (!solicitudExistente || solicitudExistente.tenantId !== tenantId) {
       throw new Error(
         "TenantId proporcionado no existe o no coincide con _id de la solicitud a modificar",
       );
     }
+
+    console.log("estado de solicitud existente ", solicitudExistente.estado?.nombre);
 
     // Verificar si la solicitud ya está finalizada o rechazada
     const nombreEstado = solicitudExistente.estado?.nombre;
@@ -173,6 +240,12 @@ const modificarSolicitudPorId = async (
     if (facturaUrl) {
       nuevosDatos.facturaUrl = facturaUrl;
       console.log("url de la factura", facturaUrl);
+    }
+
+    // Verificar si existe un estado para evitar errores de acceso a propiedades nulas
+    if (solicitudExistente.estado) {
+      // Asignar el id del estado a los nuevos datos
+      nuevosDatos.estado = solicitudExistente.estado._id;
     }
 
     // Realizar la actualización
@@ -203,6 +276,7 @@ const modificarSolicitudPorId = async (
   }
 };
 
+
 const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
   try {
     // Verificar que el _id de la solicitud y el tenantId coincidan
@@ -221,7 +295,7 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
     }
 
     // Obtener el nombre del estado actual
-    const nombreEstado = solicitudExistente.estado.nombre;
+    const nombreEstado = solicitudExistente.estado?.nombre;
     console.log("nombre del estado", nombreEstado);
 
     if (nombreEstado == "finalizado") {
