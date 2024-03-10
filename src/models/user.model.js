@@ -6,7 +6,7 @@ const userSchema= new Schema({
     identification: {type: String,
         required: [true, 'cedula es requerida']},
     tenantId: {type: String,
-        required: [false, 'Nit de la empresa requerido'],   },
+        required: [true, 'Nit de la empresa requerido'],   },
     email: {type: String,
         required:[true, 'correo requerido'],
         unique: true},
