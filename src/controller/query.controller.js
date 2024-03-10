@@ -62,7 +62,21 @@ controller.editQuery = async ( req, res ) => {
   }
 }
 
-//List of all queries:
+//Show queries whitout tenant: 
+controller.queryWhitoutTenant = async (req, res) => {
+  try {
+    const queries = await queryModel.find({ $or: [{ tenantId: { $exists: false } }, { tenantId: null }]});
+
+    res.json(queries);
+  } catch (error) {
+    ResponseStructure.status = "500"
+    ResponseStructure.message = "It could not be found."
+    ResponseStructure.data = error
+    res.status(500).send(ResponseStructure);
+  }
+}
+
+//Show of all queries:
 controller.showQueries = async (req, res) => {
   try {
     const tenantId = req.tenantId

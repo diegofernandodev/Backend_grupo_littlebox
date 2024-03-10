@@ -1,5 +1,9 @@
 const { Router } = require("express")
 const routes = Router()
+
+const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
+const checkRoleAuth = require('../middleware/roleAuth');
+
 const { deleteSubcategories, editSubcategory, getASubcategory, getSubcategoryIdentifier,
   getSubclassesByCategory, saveSubcategory, showSubcategories, showSubcategoriesWhith } = require('../controller/subcategory.controller')
 

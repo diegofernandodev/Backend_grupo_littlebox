@@ -22,7 +22,6 @@ controller.showCategories = async (req, res) => {
   }
 }
 
-
 //Show a single category:
 controller.getACategory = async (req, res) => {
   
