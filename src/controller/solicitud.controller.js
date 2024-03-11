@@ -58,13 +58,19 @@ solicitudesController.obtenerSolicitudesPorId = async (req, res) => {
 
 solicitudesController.guardarSolicitud = async (req, res) => {
   try {
-    const nuevaSolicitud = {
-      ...req.body,
-      categoria: req.body.categoria,
-    };
+    console.log("Body de la solicitud:", req.body);
+    console.log("Archivo adjunto:", req.file);
+    // const nuevaSolicitud = {
+    //   ...req.body,
+    //   categoria: req.body.categoria,
+    // };
+    const nuevaSolicitud = req.body;
+    const rutaArchivo = req.file && req.file.path ? req.file.path : null;
 
+
+    // const facturaUrl = req.file ? req.file.path : null; // Ruta del archivo adjunto (si se adjuntó)
     const tenantId = req.tenantId;
-    const solicitudGuardada = await guardarSolicitud(nuevaSolicitud, tenantId);
+    const solicitudGuardada = await guardarSolicitud(nuevaSolicitud, tenantId,rutaArchivo);
     const idCurrent = solicitudGuardada._id;
     const tipoDoc = "solicitud";
 
@@ -120,13 +126,17 @@ solicitudesController.eliminarSolicitudPorId = async (req, res) => {
 
 solicitudesController.modificarSolicitudPorId = async (req, res) => {
   try {
-    const nuevosDatos = req.body;
+    console.log("Body de la solicitud:", req.body);
+    console.log("Archivo adjunto:", req.file);
+    const formulario = req.body;
     const solicitudId = req.params.id;
     const facturaUrl = req.file ? req.file.path : null; // Ruta del archivo adjunto (si se adjuntó)
     const tenantId = req.tenantId;
+
+    console.log("formulario recibido",formulario);
     const solicitudModificada = await modificarSolicitudPorId(
       solicitudId,
-      nuevosDatos,
+      formulario,
       tenantId,
       facturaUrl,
     );
@@ -144,28 +154,76 @@ solicitudesController.modificarSolicitudPorId = async (req, res) => {
   }
 };
 
+// solicitudesController.cambiarEstadoSolicitud = async (req, res) => {
+//   try {
+//     const { estado: nuevoEstadoId } = req.body; // Extraer el ID del estado
+//     const solicitudId = req.params.id;
+//     const tenantId = req.tenantId;
+
+//     console.log("Este es el nuevo estado recibido: ",nuevoEstadoId);
+//     console.log("Este es solicitudId recibido: ",solicitudId);
+//     console.log("Este es el tenantId recibido: ",tenantId);
+
+//     const solicitudModificada = await cambiarEstadoSolicitud(
+//       solicitudId,
+//       nuevoEstadoId,
+//       tenantId,
+//     );
+//     ResponseStructure.status = 200;
+//     ResponseStructure.message = "Estado de solicitud modificado exitosamemte";
+//     ResponseStructure.data = solicitudModificada;
+
+//     res.status(200).send(ResponseStructure);
+//   } catch (error) {
+//     ResponseStructure.status = 400;
+//     ResponseStructure.message = "Error al modificar estado de la solicitud";
+//     ResponseStructure.data = error.message;
+
+//     res.status(400).json(ResponseStructure);
+//   }
+// };
+
 solicitudesController.cambiarEstadoSolicitud = async (req, res) => {
   try {
-    const { estado: nuevoEstadoId } = req.body; // Extraer el ID del estado
-    const solicitudId = req.params.id;
+    const nuevoEstadoId = req.query.nuevoEstadoId; // Extraer el ID del estado
     const tenantId = req.tenantId;
+    const solicitudesId = req.params.id;
 
-    const solicitudModificada = await cambiarEstadoSolicitud(
-      solicitudId,
-      nuevoEstadoId,
-      tenantId,
-    );
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Estado de solicitud modificado exitosamemte";
-    ResponseStructure.data = solicitudModificada;
+    console.log("Este es el nuevo estado recibido: ", nuevoEstadoId);
+    console.log("Estos son los Id de las solicitudes recibidas: ", solicitudesId);
+    console.log("Este es el tenantId recibido: ", tenantId);
 
-    res.status(200).send(ResponseStructure);
+    // Validar IDs de solicitudes
+    const solicitudIdsArray = solicitudesId.split(',');
+    console.log("este es el array de las solicitudes recibidas: ", solicitudIdsArray);
+    const solicitudesActualizadas = [];
+
+    // Iterar sobre cada solicitud y llamar al servicio para cambiar su estado
+    for (const solicitudId of solicitudIdsArray) {
+      if (!mongoose.isValidObjectId(solicitudId)) {
+        throw new Error("_id de solicitud no válido: " + solicitudId);
+      }
+
+      // Llamar a la función del servicio para cambiar el estado de la solicitud
+      const solicitudActualizada = await cambiarEstadoSolicitud(solicitudId, nuevoEstadoId, tenantId);
+      
+      // Agregar la solicitud actualizada al array de solicitudes actualizadas
+      solicitudesActualizadas.push(solicitudActualizada);
+    }
+
+    // Responder con las solicitudes actualizadas
+    res.status(200).json({
+      status: 200,
+      message: "Estado de las solicitudes actualizado exitosamente",
+      data: solicitudesActualizadas
+    });
   } catch (error) {
-    ResponseStructure.status = 400;
-    ResponseStructure.message = "Error al modificar estado de la solicitud";
-    ResponseStructure.data = error.message;
-
-    res.status(400).json(ResponseStructure);
+    // Manejar errores de validación o de la función del servicio
+    res.status(400).json({
+      status: 400,
+      message: "Error al modificar estado de las solicitudes",
+      data: error.message
+    });
   }
 };
 

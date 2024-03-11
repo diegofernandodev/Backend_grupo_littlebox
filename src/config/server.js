@@ -9,7 +9,8 @@ const routesTerceros = require("../routes/terceros.routes");
 const routesUsers = require("../routes/user.routes");
 const routesConsultas = require("../routes/consultas.routes");
 const routesLogin = require("../routes/login.routes");
-const companys = require("../routes/company.routes")
+const companys = require("../routes/company.routes");
+const estadoSolicitudes = require("../routes/estadoSolicitudes.routes")
 const cors = require("cors");
 const bodyParser = require('body-parser');
 require('dotenv').config();
@@ -42,6 +43,7 @@ appLittlebox.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 appLittlebox.use(routesLogin);
 appLittlebox.use(routesCategorias);
 appLittlebox.use(routesSolicitudes);
+appLittlebox.use(estadoSolicitudes);
 appLittlebox.use(routesEgresos);
 appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
