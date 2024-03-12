@@ -1,37 +1,8 @@
-// const { verifyToken } = require('../helpers/generateToken');
-// const userModel = require('../models/user.model');
-
-// const checkRoleAuth = (allowedRoles) => async (req, res, next) => {
-//     try {
-//         // Obtener el token desde el encabezado de autorización
-//         const token = req.headers.authorization.split(' ').pop();
-
-//         // Verificar el token y obtener los datos del usuario
-//         const tokenData = await verifyToken(token);
-//         const userData = await userModel.findById(tokenData._id);
-
-//         // Verificar si el rol del usuario está permitido
-//         if (allowedRoles.includes(userData.rol)) {
-//             // Si el rol está permitido, permitir el acceso a la ruta
-//             next();
-//         } else {
-//             // Si el rol no está permitido, devolver un error
-//             res.status(403).json({ error: 'No tienes permisos para acceder a esta ruta.' });
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         // Si hay algún error en la verificación del token, devolver un error
-//         res.status(401).json({ error: 'Token inválido o caducado.' });
-//     }
-// };
-
-// module.exports = checkRoleAuth;
-
 const { verifyToken } = require('../helpers/generateToken');
 const userModel = require('../models/user.model');
 const rolUsuario = require("../models/rolesUser.Model");
 
-const checkRoleAuth = (allowedRoles) => async (req, res, next) => {
+const checkRoleAuth = (allowedRoles) => async(req, res, next) => {
     try {
         // Obtener el token desde el encabezado de autorización
         const token = req.headers.authorization.split(' ').pop();
@@ -52,7 +23,7 @@ const checkRoleAuth = (allowedRoles) => async (req, res, next) => {
             .populate({
                 path: "rol",
                 model: rolUsuario,
-              });
+            });
 
         if (!userData) {
             // Si no se encuentra el usuario, devolver un error
