@@ -72,6 +72,7 @@ ingresosController.guardarIngreso = async (req, res) => {
 
     const tenantId = req.tenantId;
     const ingresoGuardado = await guardarIngreso(nuevoIngreso, tenantId);
+    //Enumerar:
     const idCurrent = ingresoGuardado._id;
     const tipoDoc = "ingreso"
 

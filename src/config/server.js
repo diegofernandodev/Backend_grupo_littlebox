@@ -20,6 +20,8 @@ const path = require("path");
 const queryRoutes = require('../routes/query.routes')
 const categoryRoutes = require('../routes/category.routes')
 const subcategoryRoutes = require ('../routes/subcategory.routes')
+//
+
 
 // Configuración del servidor Express
 const appLittlebox = express();

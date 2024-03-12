@@ -6,13 +6,46 @@ const { responseEdit } = require("../helpers/response.edit");
 
 const controller = {}
 
+
+controller.showSubcategoriesWhith = async (req, res) => {
+
+  try {
+    const subcategories = await subcategoryModel.find ()
+    res.json(subcategories)
+
+  }catch(err){
+    ResponseStructure.status = "500"
+    ResponseStructure.message = "It could not be found."
+    ResponseStructure.data = error
+    res.status(500).send(ResponseStructure);
+  }
+}
+
+//Show all subcategories:
+controller.showSubcategories = async (req, res) => {
+  
+  try{
+    const tenantId = req.tenantId
+    const subcategories = await subcategoryModel.find({ tenantId })
+    res.json(subcategories)
+
+  }catch(err){
+    ResponseStructure.status = "500"
+    ResponseStructure.message = "It could not be found."
+    ResponseStructure.data = error
+    res.status(500).send(ResponseStructure);
+  }
+}
+
+
 //Show a single subcategory:
 controller.getASubcategory = async (req, res) => {
   
   try {
      
     const id = req.params.id
-    const subcategory = await subcategoryModel.findById(id)
+    const tenantId = req.tenantId
+    const subcategory = await subcategoryModel.findById({ _id: id, tenantId : tenantId })
     
     if (!subcategory) {
       ResponseStructure.status = "500";
@@ -33,14 +66,16 @@ controller.getASubcategory = async (req, res) => {
   }
 }
 
+
 //Edit Subcategory:
 controller.editSubcategory = async ( req, res ) => {
 
   try {
 
     const id = req.params.id;
+    const tenantId = req.tenantId
     const edited = req.body
-    const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id }, { $set: edited });
+    const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
     
     responseEdit.status = "200"
     responseEdit.message = "It has been edited successfully."
@@ -61,26 +96,13 @@ controller.editSubcategory = async ( req, res ) => {
 }
 
 
-//Show all subcategories:
-controller.showSubcategories = async (req, res) => {
-  
-  try{
-    const subcategories = await subcategoryModel.find().populate('category', 'name')
-    res.json(subcategories)
-
-  }catch(err){
-    ResponseStructure.status = "500"
-    ResponseStructure.message = "It could not be found."
-    ResponseStructure.data = error
-    res.status(500).send(ResponseStructure);
-  }
-}
 
 //Delete Subcategories:
 controller.deleteSubcategories = async (req , res) => {
    try {
     const idParam = req.params.id;
-    const removed = await subcategoryModel.findByIdAndDelete(idParam);
+    const tenantId = req.tenantId
+    const removed = await subcategoryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
 
     ResponseStructure.status = "200";
     ResponseStructure.message = "It has been successfully removed.";
@@ -101,7 +123,9 @@ controller.deleteSubcategories = async (req , res) => {
 controller.saveSubcategory = async (req, res) =>{
   try{
     const body = req.body;
-    const newSubcategory = new subcategoryModel(body);
+    const tenantId = req.tenantId
+    body.tenantId = tenantId
+    const newSubcategory = new subcategoryModel(body, tenantId);
     await newSubcategory.save();
     
     ResponseStructure.status = 200;
@@ -129,7 +153,8 @@ controller.saveSubcategory = async (req, res) =>{
   controller.getSubcategoryIdentifier = async (req, res) => {
     try {
       const identifier = req.params.identifier;
-      const subcategory = await subcategoryModel.findOne({ identifier: identifier });
+      const tenantId = req.tenantId
+      const subcategory = await subcategoryModel.findOne({ identifier: identifier, tenantId: tenantId });
   
       if (!subcategory) {
         ResponseStructure.status = 500;
@@ -153,7 +178,8 @@ controller.saveSubcategory = async (req, res) =>{
   controller.getSubclassesByCategory = async (req, res) => {
     try {
       const identifier = req.params.identifier;
-      const subcategories = await subcategoryModel.find({ category: identifier });
+      const tenantId = req.tenantId
+      const subcategories = await subcategoryModel.find({ category: identifier, tenantId: tenantId });
   
       res.status(200).json(subcategories);
     } catch (error) {
