@@ -52,6 +52,7 @@ appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
 appLittlebox.use(routesUsers);
 appLittlebox.use(companys)
+appLittlebox.use(routesConsultas)
 
 //Rutas Chatbot
 appLittlebox.use(queryRoutes)

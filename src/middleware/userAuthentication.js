@@ -25,6 +25,7 @@ const validarTokenMiddleware = async (req, res, next) => {
         return res.status(401).json({ error: 'Token no válido' });
       }
       req.user = decodedToken;
+      req.tenantId = decodedToken.tenantId
       next();
     });
   } catch (error) {
