@@ -42,7 +42,7 @@ empresasController.obtenerEmpresaPorId = async (req, res) => {
  */
 empresasController.obtenerEmpresas = async (req, res) => {
   try {
-     // Obtener el estado de registro de la solicitud (si está presente)
+    // Obtener el estado de registro de la solicitud (si está presente)
     const estado = req.query.estadoDeRegistro;
 
     // Obtener la lista de empresas según el estado de registro
@@ -67,12 +67,9 @@ empresasController.obtenerEmpresas = async (req, res) => {
  */
 empresasController.guardarEmpresa = async (req, res) => {
   try {
-    const nuevaEmpresa = {
-      ...req.body,
-      estadoDeRegistro: "Pendiente",
-    };
+    const { empresa, usuarioPrincipal } = req.body; // Suponiendo que los datos del formulario se envían en el cuerpo de la solicitud
 
-    const empresaGuardada = await guardarEmpresa(nuevaEmpresa);
+    const empresaGuardada = await guardarEmpresa(empresa, usuarioPrincipal);
     // const idCurrent = empresaGuardada._id;
 
     // const empresaId = await actualizarEmpresaId(idCurrent);
@@ -148,10 +145,10 @@ empresasController.modificarEmpresaPorId = async (req, res) => {
   }
 };
 
-empresasController.actualizarEstadoEmpresa = async (req, res)=>{
+empresasController.actualizarEstadoEmpresa = async (req, res) => {
   try {
     const empresaId = req.params.id;
-    const nuevoEstado = req.body.nuevoEstado;  // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
+    const nuevoEstado = req.body.nuevoEstado; // Puedes enviar el nuevo estado desde el cuerpo de la solicitud
 
     const nuevoEstadoEmpresa = await actualizarEstadoEmpresa(
       empresaId,
@@ -159,17 +156,19 @@ empresasController.actualizarEstadoEmpresa = async (req, res)=>{
     );
 
     ResponseStructure.status = 200;
-      ResponseStructure.message = "Estado registro de empresa modificado exitosamemte";
-      ResponseStructure.data = nuevoEstadoEmpresa;
-  
-      res.status(200).send(ResponseStructure);
+    ResponseStructure.message =
+      "Estado registro de empresa modificado exitosamemte";
+    ResponseStructure.data = nuevoEstadoEmpresa;
+
+    res.status(200).send(ResponseStructure);
   } catch (error) {
     ResponseStructure.status = 400;
-      ResponseStructure.message = "Error al modificar estado  registro de empresa";
-      ResponseStructure.data = error.message;
-  
-      res.status(400).json(ResponseStructure);
+    ResponseStructure.message =
+      "Error al modificar estado  registro de empresa";
+    ResponseStructure.data = error.message;
+
+    res.status(400).json(ResponseStructure);
   }
-}
+};
 
 module.exports = empresasController;

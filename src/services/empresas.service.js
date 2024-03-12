@@ -1,5 +1,11 @@
 const Empresa = require("../models/empresas.Model");
+const rolModel = require("../models/rolesUser.Model");
+const User = require("../models/user.model");
 const { sendEmail } = require("../helpers/sendMail");
+const {
+  guardarUsuario,
+  cambiarEstadoRegistroUser,
+} = require("../services/user.service");
 
 /**
  * Obtiene las empresas según el estado de registro.
@@ -38,11 +44,25 @@ const obtenerEmpresaPorId = async (empresaId) => {
  * @returns {Promise<Object>} - La empresa guardada.
  * @throws {Error} - Se lanza un error si hay algún problema al guardar la empresa.
  */
-const guardarEmpresa = async (empresa) => {
+const guardarEmpresa = async (empresa, usuarioPrincipal) => {
   try {
     const nuevaEmpresa = new Empresa(empresa);
     const empresaGuardada = await nuevaEmpresa.save();
-    return empresaGuardada;
+    // Crear y guardar el usuario principal asociado a la empresa
+    const usuarioPrincipalConTenantId = {
+      ...usuarioPrincipal,
+      tenantId: nuevaEmpresa.tenantId,
+    };
+
+    const usuarioPrincipalGuardado = await guardarUsuario(
+      usuarioPrincipalConTenantId,
+      nuevaEmpresa.tenantId,
+    );
+
+    return {
+      empresa: empresaGuardada,
+      usuarioPrincipal: usuarioPrincipalGuardado,
+    };
   } catch (error) {
     throw new Error(`Error al guardar la empresa: ${error.message}`);
   }
@@ -55,12 +75,15 @@ const guardarEmpresa = async (empresa) => {
  * @returns {Promise<Object|null>} - La empresa actualizada o null si no se encuentra ninguna empresa con el ID dado.
  * @throws {Error} - Se lanza un error si hay algún problema al actualizar la empresa por su ID.
  */
-const actualizarEmpresaId = async (idEmpresaActual, datosEmpresaActualizado) => {
+const actualizarEmpresaId = async (
+  idEmpresaActual,
+  datosEmpresaActualizado,
+) => {
   try {
     const empresaActualizada = await Empresa.findByIdAndUpdate(
       idEmpresaActual,
       { $set: datosEmpresaActualizado },
-      { new: true }
+      { new: true },
     );
     return empresaActualizada;
   } catch (error) {
@@ -100,7 +123,7 @@ const modificarEmpresaPorId = async (empresaId, nuevosDatos) => {
     const empresaModificada = await Empresa.findByIdAndUpdate(
       empresaId,
       nuevosDatos,
-      { new: true }
+      { new: true },
     );
 
     if (!empresaModificada) {
@@ -115,53 +138,59 @@ const modificarEmpresaPorId = async (empresaId, nuevosDatos) => {
 
 const actualizarEstadoEmpresa = async (empresaId, nuevoEstado) => {
   try {
-    const empresaPendiente = await Empresa.findOne({ _id: empresaId });
+    const empresaActualizada = await Empresa.findOneAndUpdate(
+      { _id: empresaId },
+      { estadoDeRegistro: nuevoEstado },
+      { new: true },
+    );
 
-    if (!empresaPendiente) {
-      throw new Error('Solicitud no encontrada');
+    if (!empresaActualizada) {
+      throw new Error("Empresa no encontrada");
     }
 
-    // Obtener el nombre del estado actual 
-    const nombreEstado = empresaPendiente.estadoDeRegistro;
-    console.log("nombre del estado", nombreEstado);
-
-    if (nombreEstado == 'Aprobado' || nombreEstado == 'Rechazado') {
-      throw new Error('La solicitud de registro ya ha sido procesada, se encuentra en estado: ', nombreEstado);
+    if (empresaActualizada.estadoDeRegistro === nuevoEstado) {
+      console.log("El estado no ha cambiado. No se realizaron cambios.");
+      return empresaActualizada;
     }
 
-    // Actualizar estado 
-    empresaPendiente.estadoDeRegistro = nuevoEstado;
-    const EmpresaActualizada = await empresaPendiente.save();
-
-    if (nuevoEstado == empresaPendiente.estadoDeRegistro) {
-
-      try {
-        const datosMail = {
-          to: EmpresaActualizada.emailEmpresa,
-          subject: `Registro exitoso de empresa ${EmpresaActualizada.nombreEmpresa}`,
-          text: `¡Felicidades! Tu empresa ha sido aprobada. Ahora puedes iniciar sesión en el siguiente enlace: http://littlebox.com/login`
-        }
-        const newEmail = await sendEmail(datosMail);
-        console.log("Correo electrónico enviado:", newEmail);
-
-      } catch (error) {
-        console.error("No se pudo enviar el email:", error);
-        // Propaga el error para que sea manejado en un nivel superior si es necesario
-        throw error;
-      }
-
+    if (
+      ["Aprobado", "Rechazado"].includes(empresaActualizada.estadoDeRegistro)
+    ) {
+      throw new Error(
+        `La solicitud de registro ya ha sido procesada, se encuentra en estado: ${empresaActualizada.estadoDeRegistro}`,
+      );
     }
 
-    return EmpresaActualizada
+    await sendEmail(empresaActualizada);
 
+    const usuarios = await User.find({
+      "rol.nombre": "Gerente",
+      estadoDeRegistro: "Pendiente",
+      empresaUser: empresaActualizada._id,
+    })
+      .populate("rol")
+      .populate("empresaUser");
+
+    console.log("estos son los usurios", usuarios);
+
+    if (usuarios && usuarios.length > 0) {
+      const userId = usuarios[0]._id;
+      const tenantId = usuarios[0].tenantId;
+      const nuevoEstadoUsuario = "Aprobado";
+      await cambiarEstadoRegistroUser(userId, nuevoEstadoUsuario, tenantId);
+    }
+
+    return empresaActualizada;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontró en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontró en la base de datos",
+      );
     } else {
-      throw error; // Propaga el error para que sea manejado en el controlador
+      throw error;
     }
   }
-}
+};
 
 module.exports = {
   obtenerEmpresas,

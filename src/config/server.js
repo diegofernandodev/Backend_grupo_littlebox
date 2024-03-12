@@ -6,15 +6,15 @@ const routesEgresos = require("../routes/egresos.routes");
 const routesIngresos = require("../routes/ingresos.routes");
 const routesCategorias = require("../routes/categorias.routes");
 const routesTerceros = require("../routes/terceros.routes");
-const routesEmpresas = require("../routes/empresas.routes");
 const routesUsers = require("../routes/user.routes");
-const routesNoMiddlewere = require("../routes/rutasNoMiddleware.routes");
+const routesConsultas = require("../routes/consultas.routes");
 const routesLogin = require("../routes/login.routes");
-const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
-const { seedCategorias } = require("../helpers/seed-categorias");
+const companys = require("../routes/company.routes")
 const cors = require("cors");
-const { loginUser } = require("../controller/user.controller");
+const bodyParser = require('body-parser');
 require('dotenv').config();
+const path = require("path");
+
 
 //Chatbot: 
 const queryRoutes = require('../routes/query.routes')
@@ -25,29 +25,33 @@ const subcategoryRoutes = require ('../routes/subcategory.routes')
 const appLittlebox = express();
 const port = 4000;
 
+
+appLittlebox.use(bodyParser.json({ limit: '50mb' })); // Increase limit to 50MB
+appLittlebox.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+// appLittlebox.set("view engine", "pug");
+// appLittlebox.set("views", path.join(__dirname, "views"));
+
 // Configuración de express-session
-appLittlebox.use(session({
-    secret: process.env.JWT_SECRET, // Secreto para la sesión
-    resave: false,
-    saveUninitialized: true,
-}));
+// appLittlebox.use(session({
+//     secret: process.env.JWT_SECRET, // Secreto para la sesión
+//     resave: false,
+//     saveUninitialized: true,
+// }));
 
 appLittlebox.use(express.json()); // Habilitar el uso de JSON en las solicitudes HTTP
 appLittlebox.use(cors()); // Configuración de CORS para permitir solicitudes desde otros dominios
+appLittlebox.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-seedCategorias(); // Sembrar categorías, función para inicializar datos en la base de datos si es necesario
 
 // Rutas del servidor
 appLittlebox.use(routesLogin);
-appLittlebox.use(routesNoMiddlewere);
-appLittlebox.use(verificarTokenMiddleware);
-appLittlebox.use(routesEmpresas);
 appLittlebox.use(routesCategorias);
 appLittlebox.use(routesSolicitudes);
 appLittlebox.use(routesEgresos);
 appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
 appLittlebox.use(routesUsers);
+appLittlebox.use(companys)
 
 //Rutas Chatbot
 appLittlebox.use(queryRoutes)

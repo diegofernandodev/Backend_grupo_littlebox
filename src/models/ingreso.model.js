@@ -56,11 +56,17 @@ const ingresoSchema = new Schema({
     // max: [100000, "El precio debe ser inferior a cien mil pesos"],
   },
   
-  aprobadoPor: { 
-    type: Schema.Types.ObjectId,
-    ref: 'User', 
-    required: [true, 'Nombre de usuario es requerido'],
+  tipo: {
+    type: String,
+    enum: ['Ingreso'], // Solo permitir valores 'Ingreso' para este campo
+    default: 'Ingreso', // Valor por defecto es 'Ingreso'
   },
+  
+  // aprobadoPor: { 
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'User', 
+  //   required: [true, 'Nombre de usuario es requerido'],
+  // },
 });
 
 

@@ -35,26 +35,31 @@ ingresosController.obtenerIngresoPorId = async (req, res) => {
 
 ingresosController.obtenerIngresos = async (req, res) => {
   try {
-
-    const {fechaInicio, fechaFin } = req.body;
+    const { fechaInicio, fechaFin } = req.body;
     const tenantId = req.tenantId;
-
+  
     // Obtener la lista de ingresos usando el servicio
-    const listaIngresos = await obtenerIngresos({tenantId,fechaInicio, fechaFin});
-
+    const listaIngresos = await obtenerIngresos({ tenantId, fechaInicio, fechaFin });
+  
     // Responder con la lista de ingresos
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "Ingresos encontrados exitosamente";
-    ResponseStructure.data = listaIngresos;
-
-    res.status(200).send(ResponseStructure);
+    res.status(listaIngresos.status).send(listaIngresos);
   } catch (error) {
     // Manejar los errores y responder con el mensaje adecuado
-    ResponseStructure.status = 500;
-    ResponseStructure.message = "Error al obtener Ingresos";
-    ResponseStructure.data = error.message;
-
-    res.status(500).json(ResponseStructure);
+    let statusCode = 500;
+    let message = "Error al obtener Ingresos";
+  
+    if (error.message === "Las fechas proporcionadas no son válidas") {
+      statusCode = 400;
+      message = error.message;
+    } else if (error.message === "No se encontraron ingresos con los parámetros seleccionados") {
+      statusCode = 404;
+      message = error.message;
+    }
+  
+    res.status(statusCode).json({
+      status: statusCode,
+      message: message,
+    });
   }
 };
 

@@ -2,16 +2,46 @@ const Egreso = require("../models/egresos.Model");
 const categoriaModel = require("../models/categoria.model");
 const terceroModel = require("../models/terceros.Model");
 const counterService = require("../services/counter.service");
+const mongoose = require("mongoose");
+const { ResponseStructure } = require("../helpers/ResponseStructure");
 
-const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, tercero } = {}) => {
+async function obtenerEgresos({
+  tenantId,
+  fechaInicio,
+  fechaFin,
+  categoria,
+  tercero,
+} = {}) {
   try {
+    // Convertir las fechas a tipo Date
+    fechaInicio = new Date(fechaInicio);
+    fechaFin = new Date(fechaFin);
 
-    // Construir el filtro para la consulta
-    const filtro = { tenantId };
+    // Validar las fechas
+    if (
+      !fechaInicio ||
+      !fechaFin ||
+      isNaN(fechaInicio.getTime()) ||
+      isNaN(fechaFin.getTime())
+    ) {
+      throw new Error("Las fechas proporcionadas no son válidas");
+    }
 
-    if (user) filtro.user = user;
-    if (fechaInicio) filtro.fechaInicio = { $gte: new Date(fechaInicio) };
-    if (fechaFin) filtro.fechaFin = { $lte: new Date(fechaFin) };
+    // Validar la categoría y el tercero
+    if (categoria && !mongoose.isValidObjectId(categoria)) {
+      throw new Error("La categoría proporcionada no es válida");
+    }
+
+    if (tercero && !mongoose.isValidObjectId(tercero)) {
+      throw new Error("El tercero proporcionado no es válido");
+    }
+
+    // Construir el filtro correctamente
+    const filtro = {
+      tenantId,
+      fecha: { $gte: fechaInicio, $lte: fechaFin },
+    };
+
     if (categoria) filtro.categoria = categoria;
     if (tercero) filtro.tercero = tercero;
 
@@ -19,11 +49,13 @@ const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, terc
     const egresosExisten = await Egreso.exists({ tenantId });
 
     if (!egresosExisten) {
-      throw new Error("TenantId proporcionado no es válido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es válido o no se encuentra en la base de datos",
+      );
     }
 
     // Obtener la lista de egresos
-    const egresos = await Egreso.find({ tenantId })
+    const egresos = await Egreso.find(filtro)
       .populate({
         path: "categoria",
         model: categoriaModel,
@@ -33,21 +65,41 @@ const obtenerEgresos = async ({ tenantId, fechaInicio, fechaFin, categoria, terc
         model: terceroModel,
       });
 
-    return egresos;
+    const totalEgresos = egresos.reduce((sum, egreso) => sum + egreso.valor, 0);
+
+    // Devolver la estructura de respuesta
+    const ResponseStructureService = {
+      status: 200,
+      message: "Los egresos fueron encontrados exitosamente",
+      data: egresos,
+      totalEgresos,
+    };
+
+    // ResponseStructure.status = 200;
+    // ResponseStructure.message = "Los egresos fueron encontrados exitosamente";
+    // ResponseStructure.data = egresos;
+
+    if (!egresos.length) {
+      ResponseStructureService.status = 404;
+      ResponseStructureService.message =
+        "No se encontraron egresos con los parámetros seleccionados";
+    }
+
+    return ResponseStructureService;
   } catch (error) {
-    throw error; // Propaga el error para que sea manejado en el controlador
+    throw error; // Propagar el error para que sea manejado en el controlador
   }
-};
+}
 
 const obtenerEgresoPorId = async (egresoId, tenantId) => {
-
   try {
-
     // Verificar que el tenantId coincide con el tenantId del egreso
     const egresoExistente = await Egreso.findOne({ _id: egresoId, tenantId });
 
     if (!egresoExistente) {
-      throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no es valido o no se encuentra en la base de datos",
+      );
     }
     const egreso = await Egreso.findById({ _id: egresoId, tenantId })
       .populate({
@@ -60,14 +112,14 @@ const obtenerEgresoPorId = async (egresoId, tenantId) => {
       });
     return egreso;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
   }
-
-
 };
 
 const guardarEgreso = async (egreso, tenantId) => {
@@ -77,7 +129,9 @@ const guardarEgreso = async (egreso, tenantId) => {
 
   // Validar que el objeto egreso tenga la estructura correcta y campos requeridos
   if (!egreso || !egreso.detalle || !egreso.valor) {
-    throw new Error("El objeto egreso no es valido o no contiene campos requeridos");
+    throw new Error(
+      "El objeto egreso no es valido o no contiene campos requeridos",
+    );
   }
 
   // Crear nuevo egreso
@@ -104,34 +158,41 @@ const eliminarEgresoPorId = async (egresoId, tenantId) => {
     const egresoExistente = await Egreso.findOne({ _id: egresoId, tenantId });
 
     if (!egresoExistente) {
-      throw new Error("TenantId proporcionado no coincide con ningun Egreso en la base de datos");
+      throw new Error(
+        "TenantId proporcionado no coincide con ningun Egreso en la base de datos",
+      );
     }
 
-    const egresoEliminado = await Egreso.findOneAndDelete({ _id: egresoId, tenantId });
+    const egresoEliminado = await Egreso.findOneAndDelete({
+      _id: egresoId,
+      tenantId,
+    });
     return egresoEliminado;
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
   }
 };
 
-
 const modificarEgresoPorId = async (egresoId, nuevosDatos, tenantId) => {
-
   try {
     // Verificar que el _id del egreso y el tenantId coincidan
     const egresoExistente = await Egreso.findOne({ _id: egresoId, tenantId });
 
     if (!egresoExistente) {
-      throw new Error("TenantId proporcionado no existe o no coincide con _id del Egreso a modificar");
+      throw new Error(
+        "TenantId proporcionado no existe o no coincide con _id del Egreso a modificar",
+      );
     }
     const egresoModificado = await Egreso.findOneAndUpdate(
       { _id: egresoId, tenantId },
       nuevosDatos,
-      { new: true }
+      { new: true },
     );
 
     // Si no se encuentra el egreso, lanzar un error
@@ -140,10 +201,11 @@ const modificarEgresoPorId = async (egresoId, nuevosDatos, tenantId) => {
     }
 
     return egresoModificado;
-
   } catch (error) {
-    if (error.name === 'CastError' && error.path === '_id') {
-      throw new Error("_id proporcionado no es válido o no se encontro en la base de datos");
+    if (error.name === "CastError" && error.path === "_id") {
+      throw new Error(
+        "_id proporcionado no es válido o no se encontro en la base de datos",
+      );
     } else {
       throw error; // Propaga el error para que sea manejado en el controlador
     }
