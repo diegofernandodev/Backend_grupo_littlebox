@@ -7,53 +7,6 @@ const {
   enviarNotificacionPush,
 } = require("../services/notificaciones.service");
 
-// const movimientoDeCajaMenor = async (tenantId, fechaInicio, fechaFin, categoria, tercero) => {
-//   try {
-//     // Obtener el saldo inicial
-//     const saldoInicial = await obtenerSaldoInicial(tenantId);
-//     console.log("saldo inicial obtenido", saldoInicial);
-
-//     console.log("tenantId: ",tenantId);
-//     console.log("fecha inicial: ",fechaInicio);
-//     console.log("fecha final: ",fechaFin);
-//     console.log("categoria: ",categoria);
-//     console.log("tercero: ",tercero);
-
-//     // Obtener los ingresos y egresos
-//     const ingresos = await obtenerIngresos({tenantId, fechaInicio, fechaFin});
-//     const totalDebitos = ingresos.totalIngresos;
-//     console.log("ingresos obtenidos", ingresos, "este es el total debitos", totalDebitos);
-//     const egresos = await obtenerEgresos({tenantId, fechaInicio, fechaFin, categoria, tercero});
-//     const totalCreditos = egresos.totalEgresos;
-//     console.log("egresos obtenidos", egresos, "este es el total creditos", totalCreditos);
-
-//     // Combinar ingresos y egresos en una sola lista
-//     const listaMovimientos = [...ingresos.data, ...egresos.data].sort((a, b) => a.fecha - b.fecha);
-//     console.log("Lista de movimientos: ",listaMovimientos);
-
-//     // Formatear la lista de movimientos
-//     const listaMovimientosFormateada = listaMovimientos.map((movimiento) => {
-//       return {
-//         fecha: movimiento.fecha.toLocaleDateString(),
-//         numeroDocumento: movimiento.numeroDocumento,
-//         detalle: movimiento.detalle,
-//         valor: movimiento.valor.toLocaleString(),
-//         tipoMovimiento: movimiento.tipo === 'Ingreso' ? 'Ingreso' : 'Egreso',
-//         saldo: saldoInicial + totalDebitos - totalCreditos - movimiento.valor,
-//       };
-//     });
-
-//     // Devolver el objeto con la información del informe
-//     return {
-//       listaMovimientos: listaMovimientosFormateada,
-//       totalDebitos: totalDebitos.toLocaleString(),
-//       totalCreditos: totalCreditos.toLocaleString(),
-//       saldoFinal: saldoInicial + totalDebitos - totalCreditos,
-//     };
-//   } catch (error) {
-//     throw new Error('Error al obtener el movimiento de caja');
-//   }
-// };
 const obtenerMovimientos = async (
   tenantId,
   fechaInicio,
@@ -147,10 +100,11 @@ const movimientoDeCajaMenor = async (
         fecha: movimiento.fecha.toLocaleDateString(),
         numeroDocumento:
           movimiento.tipo === "Ingreso"
-            ? movimiento.ingresoId
+            ? movimiento.ingresoId 
             : movimiento.egresoId,
         valor: movimiento.valor.toLocaleString(),
         tipoMovimiento: movimiento.tipo === "Ingreso" ? "Ingreso" : "Egreso",
+        detalle:movimiento.detalle,
         saldo: movimiento.saldo,
       };
     });

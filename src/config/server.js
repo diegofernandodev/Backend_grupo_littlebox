@@ -47,6 +47,7 @@ appLittlebox.use(routesIngresos);
 appLittlebox.use(routesTerceros);
 appLittlebox.use(routesUsers);
 appLittlebox.use(companys)
+appLittlebox.use(routesConsultas)
 
 appLittlebox.set("port", process.env.PORT || port);
 

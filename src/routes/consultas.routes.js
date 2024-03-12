@@ -4,7 +4,7 @@ const router = Router();
 const {movimientoDeCajaMenor} = require("../controller/consultas.controller");
 
 
-const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
+const validarTokenMiddleware = require('../middleware/userAuthentication');
 const checkRoleAuth = require('../middleware/roleAuth');
 
 
@@ -13,6 +13,5 @@ router.get("/", (req, res) => {
 });
 
 // Ruta para obtener los movimienos de caja
-router.get("/obtenerMovimientoCaja", verificarTokenMiddleware,checkRoleAuth(['SuperUsuario','Gerente', 'Administrador']),movimientoDeCajaMenor);
-
+router.post("/obtenerMovimientoCaja", validarTokenMiddleware,checkRoleAuth(['SuperUsuario','Gerente', 'Administrador']),movimientoDeCajaMenor);
 module.exports = router;
