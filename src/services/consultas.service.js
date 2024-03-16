@@ -7,53 +7,23 @@ const {
   enviarNotificacionPush,
 } = require("../services/notificaciones.service");
 
-// const movimientoDeCajaMenor = async (tenantId, fechaInicio, fechaFin, categoria, tercero) => {
-//   try {
-//     // Obtener el saldo inicial
-//     const saldoInicial = await obtenerSaldoInicial(tenantId);
-//     console.log("saldo inicial obtenido", saldoInicial);
+const Categoria = require('../models/categoria.model'); // Importa el modelo de categoría
+const Tercero = require('../models/terceros.Model'); // Importa el modelo de tercero
 
-//     console.log("tenantId: ",tenantId);
-//     console.log("fecha inicial: ",fechaInicio);
-//     console.log("fecha final: ",fechaFin);
-//     console.log("categoria: ",categoria);
-//     console.log("tercero: ",tercero);
 
-//     // Obtener los ingresos y egresos
-//     const ingresos = await obtenerIngresos({tenantId, fechaInicio, fechaFin});
-//     const totalDebitos = ingresos.totalIngresos;
-//     console.log("ingresos obtenidos", ingresos, "este es el total debitos", totalDebitos);
-//     const egresos = await obtenerEgresos({tenantId, fechaInicio, fechaFin, categoria, tercero});
-//     const totalCreditos = egresos.totalEgresos;
-//     console.log("egresos obtenidos", egresos, "este es el total creditos", totalCreditos);
+// Función para obtener el nombre de una categoría a partir de su ObjectId
+const obtenerNombreCategoria = async (categoriaId) => {
+  const categoria = await Categoria.findById(categoriaId);
+  return categoria ? categoria.nombre : null;
+};
 
-//     // Combinar ingresos y egresos en una sola lista
-//     const listaMovimientos = [...ingresos.data, ...egresos.data].sort((a, b) => a.fecha - b.fecha);
-//     console.log("Lista de movimientos: ",listaMovimientos);
+// Función para obtener el nombre de un tercero a partir de su ObjectId
+const obtenerNombreTercero = async (terceroId) => {
+  const tercero = await Tercero.findById(terceroId);
+  return tercero ? tercero.nombreTercero : null;
+};
 
-//     // Formatear la lista de movimientos
-//     const listaMovimientosFormateada = listaMovimientos.map((movimiento) => {
-//       return {
-//         fecha: movimiento.fecha.toLocaleDateString(),
-//         numeroDocumento: movimiento.numeroDocumento,
-//         detalle: movimiento.detalle,
-//         valor: movimiento.valor.toLocaleString(),
-//         tipoMovimiento: movimiento.tipo === 'Ingreso' ? 'Ingreso' : 'Egreso',
-//         saldo: saldoInicial + totalDebitos - totalCreditos - movimiento.valor,
-//       };
-//     });
 
-//     // Devolver el objeto con la información del informe
-//     return {
-//       listaMovimientos: listaMovimientosFormateada,
-//       totalDebitos: totalDebitos.toLocaleString(),
-//       totalCreditos: totalCreditos.toLocaleString(),
-//       saldoFinal: saldoInicial + totalDebitos - totalCreditos,
-//     };
-//   } catch (error) {
-//     throw new Error('Error al obtener el movimiento de caja');
-//   }
-// };
 const obtenerMovimientos = async (
   tenantId,
   fechaInicio,
@@ -142,19 +112,26 @@ const movimientoDeCajaMenor = async (
       await enviarNotificacionPush("¡Alerta! El saldo de la caja es de 50.000");
     }
     // Formatear la lista de movimientos
-    const listaMovimientosFormateada = movimientosConSaldo.map((movimiento) => {
-      return {
-        fecha: movimiento.fecha.toLocaleDateString(),
-        numeroDocumento:
-          movimiento.tipo === "Ingreso"
-            ? movimiento.ingresoId
-            : movimiento.egresoId,
-        valor: movimiento.valor.toLocaleString(),
-        tipoMovimiento: movimiento.tipo === "Ingreso" ? "Ingreso" : "Egreso",
-        saldo: movimiento.saldo,
-      };
-    });
-
+const listaMovimientosFormateada = await Promise.all(
+  movimientosConSaldo.map(async (movimiento) => {
+    const categoriaNombre = await obtenerNombreCategoria(movimiento.categoria);
+    const terceroNombre = await obtenerNombreTercero(movimiento.tercero);
+    return {
+      fecha: movimiento.fecha.toLocaleDateString(),
+      numeroDocumento:
+        movimiento.tipo === "Ingreso"
+          ? movimiento.ingresoId 
+          : movimiento.egresoId,
+      valor: movimiento.valor.toLocaleString(),
+      tipoMovimiento: movimiento.tipo === "Ingreso" ? "Ingreso" : "Egreso",
+      detalle: movimiento.detalle,
+      saldo: movimiento.saldo,
+      categoria: categoriaNombre,
+      tercero: terceroNombre,
+    };
+  }) 
+); 
+  
     // Devolver el objeto con la información del informe
     return {
       listaMovimientos: listaMovimientosFormateada,

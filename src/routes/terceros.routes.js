@@ -8,10 +8,16 @@ const {
   modificarTerceroPorId,
 } = require("../controller/terceros.controller");
 
+<<<<<<< HEAD
 
 // const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
 const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
+=======
+// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
+const validarTokenMiddleware = require('../middleware/userAuthentication')
+const checkRol = require("../middleware/roleAuth");
+>>>>>>> 784f66d1a3da5d4c71bdfb7c37648a6b0e48b184
 
 router.get("/", (req, res) => {
   res.send("LittleBox");
@@ -20,41 +26,40 @@ router.get("/", (req, res) => {
 // Ruta para obtener todos los terceros
 router.get(
   "/obtenerTodosLosTerceros",
-  verificarTokenMiddleware,
-  checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
+  validarTokenMiddleware,
+  checkRol(["Gerente", "Administrador", "Colaborador"]),
   obtenerTerceros,
 );
 
 // Ruta para obtener un tercero por su ID
 router.get(
   "/obtenerTercero/:id",
-  verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador", "colaborador"]),
+  validarTokenMiddleware,
+  checkRol(["Gerente", "Administrador", "Colaborador"]),
   obtenerTerceroPorId,
 );
 
 // Ruta para modificar un tercero por su ID
 router.put(
   "/modificarTercero/:id",
-  verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador", "colaborador"]),
+  validarTokenMiddleware,
+  checkRol(["Gerente", "Administrador", "Colaborador"]),
   modificarTerceroPorId,
 );
 
 // Ruta para eliminar un tercero por su ID
 router.delete(
   "/eliminarTercero/:id",
-  verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador"]),
+  validarTokenMiddleware,
+  checkRol(["Gerente", "Administrador"]),
   eliminarTerceroPorId,
 );
 
 // Ruta para guardar un nuevo egreso
 router.post(
   "/guardarTercero",
-  verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador", "colaborador"]),
-  guardarTercero,
+  validarTokenMiddleware , checkRol(['Gerente','Administrador']),
+  guardarTercero
 );
 
 module.exports = router;
