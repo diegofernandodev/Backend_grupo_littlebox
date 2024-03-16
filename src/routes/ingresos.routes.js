@@ -37,7 +37,7 @@ router.get(
 router.put(
   "/modificarIngreso/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador"]),
+  checkRoleAuth(["Gerente", "Administrador"]),
   modificarIngresoPorId,
 );
 
@@ -45,7 +45,7 @@ router.put(
 router.delete(
   "/eliminarIngreso/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["gerente"]),
+  checkRoleAuth(["Gerente", "Administrador"]),
   eliminarIngresoPorId,
 );
 

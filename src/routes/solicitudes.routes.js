@@ -67,15 +67,5 @@ router.delete(
   eliminarSolicitudPorId,
 );
 
-// // Ruta para guardar una solicitud 
-// router.post(
-//   "/guardarSolicitud",
-//   verificarTokenMiddleware,
-//   checkRoleAuth(["Gerente", "Administrador"]),
-//   upload.single("facturaUrl"),
-//   guardarSolicitud,
-// );
-
-
 
 module.exports = router;

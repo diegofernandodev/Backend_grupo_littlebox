@@ -154,35 +154,6 @@ solicitudesController.modificarSolicitudPorId = async (req, res) => {
   }
 };
 
-// solicitudesController.cambiarEstadoSolicitud = async (req, res) => {
-//   try {
-//     const { estado: nuevoEstadoId } = req.body; // Extraer el ID del estado
-//     const solicitudId = req.params.id;
-//     const tenantId = req.tenantId;
-
-//     console.log("Este es el nuevo estado recibido: ",nuevoEstadoId);
-//     console.log("Este es solicitudId recibido: ",solicitudId);
-//     console.log("Este es el tenantId recibido: ",tenantId);
-
-//     const solicitudModificada = await cambiarEstadoSolicitud(
-//       solicitudId,
-//       nuevoEstadoId,
-//       tenantId,
-//     );
-//     ResponseStructure.status = 200;
-//     ResponseStructure.message = "Estado de solicitud modificado exitosamemte";
-//     ResponseStructure.data = solicitudModificada;
-
-//     res.status(200).send(ResponseStructure);
-//   } catch (error) {
-//     ResponseStructure.status = 400;
-//     ResponseStructure.message = "Error al modificar estado de la solicitud";
-//     ResponseStructure.data = error.message;
-
-//     res.status(400).json(ResponseStructure);
-//   }
-// };
-
 solicitudesController.cambiarEstadoSolicitud = async (req, res) => {
   try {
     const nuevoEstadoId = req.query.nuevoEstadoId; // Extraer el ID del estado
