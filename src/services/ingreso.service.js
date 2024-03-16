@@ -64,10 +64,7 @@ const obtenerIngresoPorId = async (ingresoId, tenantId) => {
       throw new Error("TenantId proporcionado no es valido o no se encuentra en la base de datos");
     }
     const ingreso = await Ingreso.findById({ _id: ingresoId, tenantId })
-      .populate({
-        path: "User",
-        model: Usuario,
-      });
+      
     return ingreso;
   } catch (error) {
     if (error.name === 'CastError' && error.path === '_id') {
@@ -85,11 +82,11 @@ const guardarIngreso = async (ingreso, tenantId) => {
   ingreso.tenantId = tenantId;
   ingreso.ingresoId = 0;
 
-  // Validar que el objeto egreso tenga la estructura correcta y campos requeridos
-  if (!ingreso || !ingreso.detalle || !ingreso.valor) {
-    throw new Error("El objeto egreso no es valido o no contiene campos requeridos");
-  }
-
+  // // Validar que el objeto egreso tenga la estructura correcta y campos requeridos
+  // if (!ingreso || !ingreso.detalle || !ingreso.valor) {
+  //   throw new Error("El objeto egreso no es valido o no contiene campos requeridos");
+  // }
+console.log("ingreso recibido del controlador",ingreso);
   // Crear nuevo ingreso
   const nuevoIngreso = new Ingreso(ingreso);
 
