@@ -25,12 +25,9 @@ const validarTokenMiddleware = async (req, res, next) => {
         return res.status(401).json({ error: 'Token no válido' });
       }
       req.user = decodedToken;
-<<<<<<< HEAD
       // Adjuntar el tenantId al objeto de solicitud
       req.tenantId = decodedToken.tenantId;
-=======
-      req.tenantId = decodedToken.tenantId
->>>>>>> 784f66d1a3da5d4c71bdfb7c37648a6b0e48b184
+
       next();
     });
   } catch (error) {
