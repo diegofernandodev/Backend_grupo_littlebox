@@ -1,31 +1,4 @@
-// const Subscription = require('../models/subscription.Model');
-// const webPush = require('../helpers/sendNotification');
 
-// const saveSubscription = async (subscriptionDetails) => {
-//   try {
-//     const newSubscription = await Subscription.create(subscriptionDetails);
-//     return { exito: newSubscription };
-
-//   } catch (error) {
-//     throw new Error('Error al guardar la suscripción: ' + error.message);
-//   }
-// };
-
-// const sendWelcomeNotification = async (subscriptionDetails) => {
-//   const notificationPayload = JSON.stringify({ title: '¡Bienvenido!', body: 'Gracias por suscribirte.' });
-//   try {
-//     await webPush.sendNotification(subscriptionDetails, notificationPayload);
-//     console.log('Notificación push de bienvenida enviada con éxito');
-//   } catch (error) {
-//     console.error('Error al enviar la notificación push de bienvenida:', error);
-//   }
-// };
-
-// module.exports = { saveSubscription, sendWelcomeNotification };
-
-// services/notificationService.js
-
-// services/notificationService.js
 const Notification = require('../models/notification.Model');
 const User = require('../models/user.model')
 
@@ -131,26 +104,7 @@ const sendNotificationToAdminUpdateSol = async (tenantId, message,solicitudId) =
 
 
 
-const markNotificationAsRead = async (notificationId) => {
-  try {
-    // Buscar la notificación por su ID
-    const notification = await Notification.findById(notificationId);
 
-    if (!notification) {
-      throw new Error('Notificación no encontrada');
-    }
-
-    // Actualizar el valor de 'read' a true
-    notification.read = true;
-
-    // Guardar la notificación actualizada en la base de datos
-    await notification.save();
-
-    return notification;
-  } catch (error) {
-    throw new Error('Error al marcar la notificación como leída: ' + error.message);
-  }
-};
 
 const getNotificationsByUserId = async (userId) => {
   try {
@@ -168,4 +122,4 @@ module.exports = {createNotificationForSuperuser,
   createNotificationForAdmin,
   createNotificationForAdminSoli,
    getNotificationsByUserId,
-    markNotificationAsRead}
+    }

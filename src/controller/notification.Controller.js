@@ -1,24 +1,6 @@
-// const { saveSubscription } = require('../services/notificationService');
 
-// const saveSubscriptions = async (req, res) => {
-//   try {
-//     await saveSubscription(req.body);
-//     res.sendStatus(201);
-//     console.log('exito')
-//   } catch (error) {
-//     console.error('Error saving subscription:', error);
-//     res.sendStatus(500);
-//   }
-// };
-
-// module.exports = { saveSubscriptions };
-
-
-
-// controllers/notificationController.js
-
-
-const { getNotificationsByUserId, markNotificationAsRead } = require('../services/notificationService');
+const { getNotificationsByUserId } = require('../services/notificationService');
+const Notification = require('../models/notification.Model');
 
 const controller = {};
 
@@ -33,17 +15,20 @@ controller.getNotificationsByUserIdC = async (req, res) => {
   }
 };
 
-controller.markNotificationAsReadC=async (req, res) => {
-  const notificationId = req.params.notificationId;
 
+controller.markNotificationAsRead = async (req, res) => {
   try {
-    const updatedNotification = await markNotificationAsRead(notificationId);
-    res.status(200).json({ message: 'Notificación marcada como leída', notification: updatedNotification });
+    const notificationId = req.params.notificationId;
+    await Notification.findByIdAndUpdate(notificationId, { read: true });
+    res.sendStatus(200);
   } catch (error) {
     console.error('Error al marcar la notificación como leída:', error);
-    res.status(500).json({ error: 'Error al marcar la notificación como leída' });
+    res.sendStatus(500);
   }
 };
+
+
+
 
 module.exports = controller; 
 

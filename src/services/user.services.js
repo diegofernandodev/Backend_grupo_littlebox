@@ -6,6 +6,8 @@ const nodemailer = require('nodemailer');
 const Role= require('../models/roles.model')
 const listaNegraService = require('../services/blackList.service');
 const sendEmailUsers = require('../helpers/sendEmailUser')
+const createNotificationForAdmin = require('../services/notificationService')
+
 
 // Tu lógica para el servicio de usuario aquí
 
@@ -30,6 +32,8 @@ const createUser = async (req, res) => {
     } else if (role && role.rol === 'Colaborador') {
       status = 'pendiente'; // Si es "Colaborador", establecemos el estado como "pendiente"
     }
+          await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+
     
 
 
