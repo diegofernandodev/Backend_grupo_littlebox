@@ -8,16 +8,9 @@ const {
   modificarTerceroPorId,
 } = require("../controller/terceros.controller");
 
-<<<<<<< HEAD
-
-// const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
-const verificarTokenMiddleware = require("../middleware/userAuthentication");
-const checkRoleAuth = require("../middleware/roleAuth");
-=======
 // const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
 const validarTokenMiddleware = require('../middleware/userAuthentication')
 const checkRol = require("../middleware/roleAuth");
->>>>>>> 784f66d1a3da5d4c71bdfb7c37648a6b0e48b184
 
 router.get("/", (req, res) => {
   res.send("LittleBox");
@@ -58,7 +51,7 @@ router.delete(
 // Ruta para guardar un nuevo egreso
 router.post(
   "/guardarTercero",
-  validarTokenMiddleware , checkRol(['Gerente','Administrador']),
+  validarTokenMiddleware , checkRol(['Gerente','Administrador','Colaborador']),
   guardarTercero
 );
 

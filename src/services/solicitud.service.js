@@ -9,8 +9,35 @@ const {
   actualizarEgresoId,
 } = require("../services/egresos.service");
 
-const obtenerSolicitudes = async (tenantId) => {
+const obtenerSolicitudes = async (fechaInicio, fechaFin, tenantId, usuarioId = null, usuarioRol = null, documento = null) => {
   try {
+
+     // Convertir las fechas a tipo Date si están presentes
+     if (!fechaInicio || !fechaFin) {
+      throw new Error("Las fechas de inicio y fin son obligatorias para filtrar las solicitudes.");
+    }
+
+    // Convertir las fechas a tipo Date
+    fechaInicio = new Date(fechaInicio);
+    fechaFin = new Date(fechaFin);
+
+    // Validar las fechas
+    if (!fechaInicio || !fechaFin || isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      throw new Error("Las fechas proporcionadas no son válidas");
+    }
+
+    let query = { tenantId, fecha: { $gte: new Date(fechaInicio), $lte: new Date(fechaFin) }, };
+
+    // Si el usuario es colaborador, filtramos por su ID
+    if (usuarioRol === 'Colaborador') {
+      query._Id = usuarioId;
+    }
+
+    // Si se proporciona un documento, se agrega a la consulta
+    if (documento) {
+      query.userDocument = documento;
+    }
+
     // Verificar que el tenantId coincide con el tenantId de las solicitudes
     const solicitudesExisten = await Solicitud.exists({ tenantId });
 
@@ -19,9 +46,9 @@ const obtenerSolicitudes = async (tenantId) => {
         "TenantId proporcionado no es válido o no se encuentra en la base de datos",
       );
     }
-
+    console.log("esta es la query", query);
     // Obtener la lista de solicitudes
-    const solicitudes = await Solicitud.find({ tenantId })
+    const solicitudes = await Solicitud.find(query)
       .populate({
         path: "categoria",
         model: categoriaModel,
@@ -86,6 +113,10 @@ const guardarSolicitud = async (solicitud, tenantId,rutaArchivo) => {
   // Asignar el solicitudId y el tenantId a la solicitud
   solicitud.tenantId = tenantId;
   solicitud.solicitudId = 0;
+  // solicitud.userRole = req.rol.nombre;
+  // solicitud.userDocument = req.identification;
+
+  console.log("rol: ", solicitud.userRole, " documento: ", solicitud.userDocument);
 console.log("file factura: ", rutaArchivo);
   // // Validar que el objeto solicitud tenga la estructura correcta y campos requeridos
   // if (!solicitud || !solicitud.detalle || !solicitud.valor) {

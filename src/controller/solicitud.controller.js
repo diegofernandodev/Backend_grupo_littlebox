@@ -16,9 +16,25 @@ const solicitudesController = {};
 solicitudesController.obtenerSolicitudes = async (req, res) => {
   try {
     const tenantId = req.tenantId;
+    const usuarioId = req.userId; // Suponiendo que tienes un middleware que extrae el ID del usuario
+    const usuarioRol = req.rol; // Suponiendo que tienes un middleware que extrae el rol del usuario
+    // const documento = req.query.identification || null;
+    // const { fechaInicio, fechaFin } = req.query;
+    const { fechaInicio, fechaFin, documento } = req.query;
+
+    console.log("tenantId",tenantId);
+    console.log("usuarioId",usuarioId);
+    console.log("usuarioRol",usuarioRol);
+    console.log("fechaInicio",fechaInicio);
+    console.log("fechaFin",fechaFin);
+    console.log("documento",documento);
+
+    console.log("Body de la solicitud:", req.body);
+    console.log("Query de la solicitud:", req.query);
+
 
     // Obtener la lista de solicitudes usando el servicio
-    const listaSolicitudes = await obtenerSolicitudes(tenantId);
+    const listaSolicitudes = await obtenerSolicitudes(fechaInicio, fechaFin,tenantId, usuarioId,usuarioRol,documento);
 
     // Responder con la lista de solicitudes
     ResponseStructure.status = 200;
@@ -60,16 +76,22 @@ solicitudesController.guardarSolicitud = async (req, res) => {
   try {
     console.log("Body de la solicitud:", req.body);
     console.log("Archivo adjunto:", req.file);
-    // const nuevaSolicitud = {
-    //   ...req.body,
-    //   categoria: req.body.categoria,
-    // };
-    const nuevaSolicitud = req.body;
     const rutaArchivo = req.file && req.file.path ? req.file.path : null;
-
-
-    // const facturaUrl = req.file ? req.file.path : null; // Ruta del archivo adjunto (si se adjuntó)
     const tenantId = req.tenantId;
+    const userRole = req.rol;
+    const userDocument = req.identification;
+
+    // Asignar valores al objeto de la solicitud
+    const nuevaSolicitud = {
+      ...req.body,
+      tenantId: tenantId,
+      userRole: userRole,
+      userDocument: userDocument,
+    };
+
+    console.log("rol: ", nuevaSolicitud.userRole, " documento: ", nuevaSolicitud.userDocument);
+    // const facturaUrl = req.file ? req.file.path : null; // Ruta del archivo adjunto (si se adjuntó)
+    
     const solicitudGuardada = await guardarSolicitud(nuevaSolicitud, tenantId,rutaArchivo);
     const idCurrent = solicitudGuardada._id;
     const tipoDoc = "solicitud";
