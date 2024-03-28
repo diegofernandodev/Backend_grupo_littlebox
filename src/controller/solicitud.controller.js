@@ -76,7 +76,7 @@ solicitudesController.guardarSolicitud = async (req, res) => {
   try {
     console.log("Body de la solicitud:", req.body);
     console.log("Archivo adjunto:", req.file);
-    const rutaArchivo = req.file && req.file.path ? req.file.path : null;
+    // const rutaArchivo = req.file && req.file.path ? req.file.path : null;
     const tenantId = req.tenantId;
     const userRole = req.rol;
     const userDocument = req.identification;
@@ -92,7 +92,7 @@ solicitudesController.guardarSolicitud = async (req, res) => {
     console.log("rol: ", nuevaSolicitud.userRole, " documento: ", nuevaSolicitud.userDocument);
     // const facturaUrl = req.file ? req.file.path : null; // Ruta del archivo adjunto (si se adjuntó)
     
-    const solicitudGuardada = await guardarSolicitud(nuevaSolicitud, tenantId,rutaArchivo);
+    const solicitudGuardada = await guardarSolicitud(nuevaSolicitud, tenantId);
     const idCurrent = solicitudGuardada._id;
     const tipoDoc = "solicitud";
 

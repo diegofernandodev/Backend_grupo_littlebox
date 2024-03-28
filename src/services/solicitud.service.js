@@ -106,10 +106,10 @@ const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
   }
 };
 
-const guardarSolicitud = async (solicitud, tenantId,rutaArchivo) => {
+const guardarSolicitud = async (solicitud, tenantId) => {
 
   console.log("esta es la solicitud para guardar..",solicitud);
-  console.log("esta es la ruta del archivo para guardar..",rutaArchivo);
+  // console.log("esta es la ruta del archivo para guardar..",rutaArchivo);
   // Asignar el solicitudId y el tenantId a la solicitud
   solicitud.tenantId = tenantId;
   solicitud.solicitudId = 0;
@@ -117,7 +117,7 @@ const guardarSolicitud = async (solicitud, tenantId,rutaArchivo) => {
   // solicitud.userDocument = req.identification;
 
   console.log("rol: ", solicitud.userRole, " documento: ", solicitud.userDocument);
-console.log("file factura: ", rutaArchivo);
+// console.log("file factura: ", rutaArchivo);
   // // Validar que el objeto solicitud tenga la estructura correcta y campos requeridos
   // if (!solicitud || !solicitud.detalle || !solicitud.valor) {
   //   throw new Error(
@@ -126,10 +126,10 @@ console.log("file factura: ", rutaArchivo);
   // }
 
   // Agregar la URL de la factura a los  datos (si se adjuntó)
-  if (rutaArchivo) {
-    solicitud.facturaUrl = rutaArchivo;
-    console.log("url de la factura", rutaArchivo);
-  }
+  // if (rutaArchivo) {
+  //   solicitud.facturaUrl = rutaArchivo;
+  //   console.log("url de la factura", rutaArchivo);
+  // }
 
   // Crear nueva solicitud
   const nuevaSolicitud = new Solicitud(solicitud);
