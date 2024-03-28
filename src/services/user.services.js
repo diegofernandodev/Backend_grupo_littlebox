@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const Role= require('../models/roles.model')
 const listaNegraService = require('../services/blackList.service');
 const sendEmailUsers = require('../helpers/sendEmailUser')
-const createNotificationForAdmin = require('../services/notificationService')
+const {createNotificationForAdmin} = require('../services/notificationService')
 
 
 // Tu lógica para el servicio de usuario aquí
@@ -27,14 +27,12 @@ const createUser = async (req, res) => {
 
     // Establecer el estado del usuario según el rol
     let status = 'activo'; // Por defecto, el estado es "activo"
-    if (role && role.rol === 'Gerente') {
-      status = 'pendiente'; // Si es "Gerente", establecemos el estado como "pendiente"
-    } else if (role && role.rol === 'Colaborador') {
-      status = 'pendiente'; // Si es "Colaborador", establecemos el estado como "pendiente"
-    }
-          await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+if (req.body.rol === 'Gerente' || req.body.rol === 'Colaborador') {
+  status = 'pendiente'; // Si es "Gerente" o "Colaborador", establecemos el estado como "pendiente"
+}
 
-    
+                    await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+
 
 
     // Crear el usuario
@@ -238,7 +236,7 @@ function crearToken(user) {
 
 
 const getUsers = async (tenantId) => {
-  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' }, status: 'activo' });
+  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' }, status: 'pendiente' });
 };
 
 

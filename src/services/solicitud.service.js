@@ -8,6 +8,9 @@ const {
   guardarEgreso,
   actualizarEgresoId,
 } = require("../services/egresos.service");
+const {createNotificationForAdminSoli} = require('../services/notificationService')
+
+
 
 const obtenerSolicitudes = async (tenantId) => {
   try {
@@ -106,7 +109,10 @@ console.log("file factura: ", rutaArchivo);
   // Guardar la solicitud
   const solicitudGuardada = await nuevaSolicitud.save();
 
+  await createNotificationForAdminSoli(tenantId, 'Nueva solicitud de gasto');
+
   return solicitudGuardada;
+  
 };
 
 const actualizarSolicitudId = async (tenantId, idSolicitudActual, tipoDoc) => {
@@ -215,7 +221,11 @@ const modificarSolicitudPorId = async (
       throw new Error("Solicitud no encontrada");
     }
 
+    //enviar notificacion a admin
+    await sendNotificationToAdminUpdateSol(tenantId, 'Solicitud actualizada', solicitudId);
+
     return solicitudModificada;
+
   } catch (error) {
     if (error.name === "CastError" && error.path === "_id") {
       throw new Error(

@@ -23,19 +23,31 @@ const createNotificationForSuperuser = async (newCompany) => {
   }
 };
 
+const getCollaboratorTenantId = async (userRole) => {
+  try {
+
+    return userRole.tenantId;
+  } catch (error) {
+    throw new Error("Error al obtener el tenantId del rol de colaborador: " + error.message);
+  }
+}
+
 const createNotificationForAdmin = async (tenantId, userRole) => {
   try {
     // Buscar todos los administradores
     const admins = await User.find({ rol: 'Administrador' });
-    
+
     // Crear y enviar notificación a cada administrador encontrado
     await Promise.all(admins.map(async (admin) => {
+      // Buscar el tenantId del rol de colaborador que se está creando
+      const collaboratorTenantId = await getCollaboratorTenantId(userRole);
+
       await Notification.create({
-        userId: admin._id, 
+        userId: admin._id,
         rol: admin.rol,
-        tenantId: tenantId,
-        message:`Se ha creado un nuevo usuario que requiere aprobación`,
-        url: '/SoliColaboradores/' 
+        tenantId: collaboratorTenantId,
+        message: `Se ha creado una solicitud de un nuevo usuario que requiere aprobación`,
+        url: '/SoliColaboradores/'
       });
     }));
   } catch (error) {
@@ -51,17 +63,19 @@ const createNotificationForAdminSoli = async (tenantId, message) => {
     // Crear y enviar notificación a cada administrador encontrado
     await Promise.all(admins.map(async (admin) => {
       await Notification.create({
-        userId: admin._id,
+        userId: admin._id, // Asumiendo que el userId es un ObjectId válido
         rol: admin.rol,
         tenantId: tenantId,
         message: 'Nueva solicitud de gasto',
-
+        url: '/obtenerTodasLasSolicitudes/'
       });
     }));
   } catch (error) {
     throw new Error("Error al crear y enviar notificación al administrador: " + error.message);
   }
 };
+
+
 
 
 const sendNotificationToColaboradorSoli = async (tenantId, message,solicitudId) => {
