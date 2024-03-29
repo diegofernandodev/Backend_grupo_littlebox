@@ -74,7 +74,11 @@ const solicitudSchema = new Schema({
   userDocument: {
     type: String,
     required: true,
-  }
+  },
+  userId: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = model("Solicitud", solicitudSchema, "solicitudes");
