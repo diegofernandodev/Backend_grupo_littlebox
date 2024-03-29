@@ -11,8 +11,9 @@ const controller = {}
 controller.showCategories = async (req, res) => {
   
   try{
-    const tenantId = req.tenantId
-    const categories = await categoryModel.find({ tenantId })
+    // const tenantId = req.tenantId
+    // const categories = await categoryModel.find({ tenantId })
+    const categories = await categoryModel.find()
     res.json(categories)
   }catch(err){
     ResponseStructure.status = "500"
@@ -28,8 +29,9 @@ controller.getACategory = async (req, res) => {
   try {
      
     const id = req.params.id
-    const tenantId = req.tenantId
-    const category = await categoryModel.findById({_id: id, tenantId: tenantId})
+    // const tenantId = req.tenantId
+    // const category = await categoryModel.findById({_id: id, tenantId: tenantId})
+    const category = await categoryModel.findById({_id: id })
     
     if (!category) {
       ResponseStructure.status = "500";
@@ -57,9 +59,10 @@ controller.editCategory = async ( req, res ) => {
   try {
 
     const id = req.params.id;
-    const tenantId = req.tenantId
     const edited = req.body
-    const category = await categoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
+    // const tenantId = req.tenantId
+    // const category = await categoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
+    const category = await categoryModel.findByIdAndUpdate({ _id: id }, { $set: edited });
     
     responseEdit.status = "200"
     responseEdit.message = "It has been edited successfully."
@@ -84,8 +87,9 @@ controller.editCategory = async ( req, res ) => {
 controller.deleteCategory = async (req , res) => {
    try {
     const idParam = req.params.id;
-    const tenantId = req.tenantId
-    const removed = await categoryModel.findByIdAndDelete({ _id: idParam, tenantId: tenantId});
+    // const tenantId = req.tenantId
+    // const removed = await categoryModel.findByIdAndDelete({ _id: idParam, tenantId: tenantId});
+    const removed = await categoryModel.findByIdAndDelete({ _id: idParam });
 
     ResponseStructure.status = "200";
     ResponseStructure.message = "It has been successfully removed.";
@@ -107,9 +111,10 @@ controller.deleteCategory = async (req , res) => {
 controller.saveCategory = async (req, res) =>{
   try{
     const body = req.body;
-    const tenantId = req.tenantId
-    body.tenantId = tenantId
-    const newCategory = new categoryModel(body,tenantId);
+    // const tenantId = req.tenantId
+    // body.tenantId = tenantId
+    // const newCategory = new categoryModel(body,tenantId);
+    const newCategory = new categoryModel(body);
     await newCategory.save();
     
     ResponseStructure.status = 200;

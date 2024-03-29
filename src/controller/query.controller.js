@@ -12,8 +12,9 @@ controller.getAQuery = async (req, res) => {
   try {
      
     const tenantId = req.tenantId
-    const id = req.params.id
-    const query = await queryModel.findById({_id: id, tenantId: tenantId})
+    // const id = req.params.id
+    // const query = await queryModel.findById({_id: id, tenantId: tenantId})
+    const query = await queryModel.findById({_id: id})
     
     if (!query) {
       ResponseStructure.status = "500";
@@ -40,9 +41,10 @@ controller.editQuery = async ( req, res ) => {
   try {
 
     const id = req.params.id;
-    const tenantId = req.tenantId
     const edited = req.body
-    const query = await queryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
+    // const tenantId = req.tenantId
+    // const query = await queryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
+    const query = await queryModel.findByIdAndUpdate({ _id: id }, { $set: edited });
     
     responseEdit.status = "200"
     responseEdit.message = "It has been edited successfully."
@@ -62,25 +64,26 @@ controller.editQuery = async ( req, res ) => {
   }
 }
 
-//Show queries whitout tenant: 
-controller.queryWhitoutTenant = async (req, res) => {
-  try {
-    const queries = await queryModel.find({ $or: [{ tenantId: { $exists: false } }, { tenantId: null }]});
+// //Show queries whitout tenant: 
+// controller.queryWhitoutTenant = async (req, res) => {
+//   try {
+//     const queries = await queryModel.find({ $or: [{ tenantId: { $exists: false } }, { tenantId: null }]});
 
-    res.json(queries);
-  } catch (error) {
-    ResponseStructure.status = "500"
-    ResponseStructure.message = "It could not be found."
-    ResponseStructure.data = error
-    res.status(500).send(ResponseStructure);
-  }
-}
+//     res.json(queries);
+//   } catch (error) {
+//     ResponseStructure.status = "500"
+//     ResponseStructure.message = "It could not be found."
+//     ResponseStructure.data = error
+//     res.status(500).send(ResponseStructure);
+//   }
+// }
 
 //Show of all queries:
 controller.showQueries = async (req, res) => {
   try {
-    const tenantId = req.tenantId
-    const queries = await queryModel.find({ tenantId })
+    // const tenantId = req.tenantId
+    // const queries = await queryModel.find({ tenantId })
+    const queries = await queryModel.find().populate('subcategory', 'name');
     res.json(queries);
 
   } catch (err) {
@@ -95,8 +98,9 @@ controller.showQueries = async (req, res) => {
 controller.deleteQuery = async (req , res) => {
    try {
     const idParam = req.params.id;
-    const tenantId = req.tenantId
-    const removed = await queryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
+    // const tenantId = req.tenantId
+    // const removed = await queryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
+    const removed = await queryModel.findByIdAndDelete({ _id:idParam });
 
     ResponseStructure.status = "200";
     ResponseStructure.message = "It has been successfully removed.";
@@ -117,9 +121,10 @@ controller.deleteQuery = async (req , res) => {
 controller.saveQuery = async (req, res) =>{
   try{
     const body = req.body;
-    const tenantId = req.tenantId
-    body.tenantId = tenantId
-    const newQuery = new queryModel(body, tenantId);
+    // const tenantId = req.tenantId
+    // body.tenantId = tenantId
+    // const newQuery = new queryModel(body, tenantId);
+    const newQuery = new queryModel(body);
     await newQuery.save();
     
     ResponseStructure.status = 200;
@@ -144,36 +149,42 @@ controller.saveQuery = async (req, res) =>{
   }
 
 //Show query by identifier:
-  controller.getConsultationIdentifier = async (req, res) => {
-    try {
-      const identifier = req.params.identifier;
-      const tenantId = req.tenantId
-      const query = await queryModel.findOne({ identifier: identifier, tenantId: tenantId });
+controller.getConsultationIdentifier = async (req, res) => {
+  try {
+    const identifier = req.params.identifier;
   
-      if (!query) {
-        ResponseStructure.status = 500;
-        ResponseStructure.message = "The query does not exist.";
-        ResponseStructure.data = errors;
+    const query = await queryModel.findOne({ identifier: identifier });
 
-        res.status(404).send(ResponseStructure);
-      }
-  
-      res.status(200).send(query);
-    } catch (err) {
-      console.error('Search error:', err);
-      ResponseStructure.status = "500";
-      ResponseStructure.message = "Could not be found correctly.";
-      ResponseStructure.data = err;
-      res.status(500).send(ResponseStructure);
+    
+    if (!query || !query.identifier || !query.question || !query.answer || !query.subcategory) {
+      ResponseStructure.status = 404;
+      ResponseStructure.message = "The query does not exist or has an invalid format.";
+      ResponseStructure.data = null;
+      return res.status(404).json(ResponseStructure);
     }
-  }
 
-//Get query for subclass id:
+   
+    ResponseStructure.status = 200;
+    ResponseStructure.message = "Query found.";
+    ResponseStructure.data = query;
+    res.status(200).json(ResponseStructure);
+  } catch (err) {
+    console.error('Search error:', err);
+    ResponseStructure.status = 500;
+    ResponseStructure.message = "An error occurred while searching for the query.";
+    ResponseStructure.data = err;
+    res.status(500).json(ResponseStructure);
+  }
+}
+
+
+//Get query for subcategory id:
   controller.getQueriesBySubcategory = async (req, res) => {
     try {
       const identifier = req.params.identifier;
-      const tenantId = req.tenantId
-      const queries = await queryModel.find({ subcategory: identifier, tenantId: tenantId });
+      // const tenantId = req.tenantId
+      // const queries = await queryModel.find({ subcategory: identifier, tenantId: tenantId });
+      const queries = await queryModel.find({ subcategory: identifier });
   
       res.status(200).json(queries);
       

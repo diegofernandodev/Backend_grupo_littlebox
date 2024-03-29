@@ -5,13 +5,13 @@ const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware')
 const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteQuery, editQuery, getAQuery, getConsultationIdentifier,
-    getQueriesBySubcategory, saveQuery, showQueries, queryWhitoutTenant }= require('../controller/query.controller')
+    getQueriesBySubcategory, saveQuery, showQueries }= require('../controller/query.controller')
     
 //List of all queries:
 routes.get('/showQueries', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']), showQueries)
 
-//Show queries whitout tenant:
-routes.get('/showQueriesWT', verificarTokenMiddleware,checkRoleAuth(['colaborador', 'gerente', 'administrador']),queryWhitoutTenant )
+// //Show queries whitout tenant:
+// routes.get('/showQueriesWT', verificarTokenMiddleware,checkRoleAuth(['colaborador', 'gerente', 'administrador']),queryWhitoutTenant )
 
  //Show a single query: 
 routes.get ('/getAQuery/:id', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']), getAQuery)

@@ -5,14 +5,14 @@ const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware')
 const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteSubcategories, editSubcategory, getASubcategory, getSubcategoryIdentifier,
-  getSubclassesByCategory, saveSubcategory, showSubcategories, showSubcategoriesWhith } = require('../controller/subcategory.controller')
+  getSubcategoriesByCategory, saveSubcategory, showSubcategories } = require('../controller/subcategory.controller')
 
 
 //Show all subcategories whith tenant:
 routes.get('/showSubcategories', showSubcategories)
 
-//Show all subcategories whithout tenant
-routes.get('/showSubcategoriesWhith', showSubcategoriesWhith)
+// //Show all subcategories whithout tenant
+// routes.get('/showSubcategoriesWhith', showSubcategoriesWhith)
 
 //Show a single subcategory:
 routes.get ('/getASubcategory/:id', getASubcategory)
@@ -21,7 +21,7 @@ routes.get ('/getASubcategory/:id', getASubcategory)
 routes.get('/getSubcategoryIdentifier/:identifier', getSubcategoryIdentifier)
   
 //Get subcategory through the category id:
-routes.get('/getSubclassesByCategory/:identifier', getSubclassesByCategory);
+routes.get('/getSubcategoriesByCategory/:identifier', getSubcategoriesByCategory);
 
 //Save subcategory:
 routes.post('/saveSubcategory', saveSubcategory)
