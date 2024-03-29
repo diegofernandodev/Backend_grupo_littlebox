@@ -116,7 +116,24 @@ const sendNotificationToAdminUpdateSol = async (tenantId, message,solicitudId) =
   }
 };
 
-
+const createNotificationForColaborador = async (tenantId, message) => {
+  try {
+    // Buscar a los colaboradores que crearon la solicitud
+    const colaboradores = await User.find({ rol: 'Colaborador', tenantId: tenantId });
+    
+    // Crear y enviar notificación a cada colaborador encontrado
+    await Promise.all(colaboradores.map(async (colaborador) => {
+      await Notification.create({
+        userId: colaborador._id,
+        rol: colaborador.rol,
+        tenantId: tenantId,
+        message: message,
+      });
+    }));
+  } catch (error) {
+    throw new Error("Error al crear y enviar notificación al colaborador: " + error.message);
+  }
+};
 
 
 
@@ -136,4 +153,5 @@ module.exports = {createNotificationForSuperuser,
   createNotificationForAdmin,
   createNotificationForAdminSoli,
    getNotificationsByUserId,
+   createNotificationForColaborador
     }

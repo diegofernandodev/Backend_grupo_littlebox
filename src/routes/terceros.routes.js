@@ -51,7 +51,7 @@ router.delete(
 // Ruta para guardar un nuevo egreso
 router.post(
   "/guardarTercero",
-  validarTokenMiddleware , checkRol(['Gerente','Administrador']),
+  validarTokenMiddleware , checkRol(['Gerente','Administrador','Colaborador']),
   guardarTercero
 );
 

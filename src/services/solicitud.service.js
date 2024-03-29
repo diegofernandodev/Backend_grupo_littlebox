@@ -8,12 +8,39 @@ const {
   guardarEgreso,
   actualizarEgresoId,
 } = require("../services/egresos.service");
-const {createNotificationForAdminSoli} = require('../services/notificationService')
+const {createNotificationForAdminSoli, createNotificationForColaborador} = require('../services/notificationService')
 
 
 
-const obtenerSolicitudes = async (tenantId) => {
+const obtenerSolicitudes = async (fechaInicio, fechaFin, tenantId, usuarioId = null, usuarioRol = null, documento = null) => {
   try {
+
+     // Convertir las fechas a tipo Date si están presentes
+     if (!fechaInicio || !fechaFin) {
+      throw new Error("Las fechas de inicio y fin son obligatorias para filtrar las solicitudes.");
+    }
+
+    // Convertir las fechas a tipo Date
+    fechaInicio = new Date(fechaInicio);
+    fechaFin = new Date(fechaFin);
+
+    // Validar las fechas
+    if (!fechaInicio || !fechaFin || isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      throw new Error("Las fechas proporcionadas no son válidas");
+    }
+
+    let query = { tenantId, fecha: { $gte: new Date(fechaInicio), $lte: new Date(fechaFin) }, };
+
+    // Si el usuario es colaborador, filtramos por su ID
+    if (usuarioRol === 'Colaborador') {
+      query._Id = usuarioId;
+    }
+
+    // Si se proporciona un documento, se agrega a la consulta
+    if (documento) {
+      query.userDocument = documento;
+    }
+
     // Verificar que el tenantId coincide con el tenantId de las solicitudes
     const solicitudesExisten = await Solicitud.exists({ tenantId });
 
@@ -22,9 +49,9 @@ const obtenerSolicitudes = async (tenantId) => {
         "TenantId proporcionado no es válido o no se encuentra en la base de datos",
       );
     }
-
+    console.log("esta es la query", query);
     // Obtener la lista de solicitudes
-    const solicitudes = await Solicitud.find({ tenantId })
+    const solicitudes = await Solicitud.find(query)
       .populate({
         path: "categoria",
         model: categoriaModel,
@@ -82,14 +109,18 @@ const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
   }
 };
 
-const guardarSolicitud = async (solicitud, tenantId,rutaArchivo) => {
+const guardarSolicitud = async (solicitud, tenantId) => {
 
   console.log("esta es la solicitud para guardar..",solicitud);
-  console.log("esta es la ruta del archivo para guardar..",rutaArchivo);
+  // console.log("esta es la ruta del archivo para guardar..",rutaArchivo);
   // Asignar el solicitudId y el tenantId a la solicitud
   solicitud.tenantId = tenantId;
   solicitud.solicitudId = 0;
-console.log("file factura: ", rutaArchivo);
+  // solicitud.userRole = req.rol.nombre;
+  // solicitud.userDocument = req.identification;
+
+  console.log("rol: ", solicitud.userRole, " documento: ", solicitud.userDocument);
+// console.log("file factura: ", rutaArchivo);
   // // Validar que el objeto solicitud tenga la estructura correcta y campos requeridos
   // if (!solicitud || !solicitud.detalle || !solicitud.valor) {
   //   throw new Error(
@@ -98,10 +129,10 @@ console.log("file factura: ", rutaArchivo);
   // }
 
   // Agregar la URL de la factura a los  datos (si se adjuntó)
-  if (rutaArchivo) {
-    solicitud.facturaUrl = rutaArchivo;
-    console.log("url de la factura", rutaArchivo);
-  }
+  // if (rutaArchivo) {
+  //   solicitud.facturaUrl = rutaArchivo;
+  //   console.log("url de la factura", rutaArchivo);
+  // }
 
   // Crear nueva solicitud
   const nuevaSolicitud = new Solicitud(solicitud);
@@ -266,6 +297,18 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
 
     // Actualizar estado de la solicitud
     solicitudExistente.estado = nuevoEstadoId;
+
+    //notificacion
+    // Obtener el nombre del nuevo estado
+    const nuevoEstado = await EstadoSolicitud.findById(nuevoEstadoId);
+    const nombreNuevoEstado = nuevoEstado ? nuevoEstado.nombre : "Desconocido";
+
+    // Crear el mensaje de notificación con el nombre del nuevo estado
+    const mensajeNotificacion = `El estado de la solicitud ha cambiado a: ${nombreNuevoEstado}`;
+
+    // Enviar notificación a los colaboradores que crearon la solicitud
+    await createNotificationForColaborador(tenantId, mensajeNotificacion);
+
     const solicitudActualizada = await solicitudExistente.save();
 
     console.log(

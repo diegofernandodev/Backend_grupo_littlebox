@@ -40,8 +40,10 @@ const validarTokenMiddleware = async (req, res, next) => {
         return res.status(401).json(ResponseStructure);
       }
 
-      // Adjuntar el tenantId al objeto de solicitud
+      // Adjuntar tenantId, rol y userId al objeto de solicitud
       req.tenantId = decodedToken.tenantId;
+      req.rol = decodedToken.rol;
+      req.userId = decodedToken.userId
 
       // Si no estamos en la ruta /logout, no eliminamos el token de la sesión
       if (req.url !== "/logout") {

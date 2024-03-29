@@ -67,6 +67,14 @@ const solicitudSchema = new Schema({
   facturaUrl: {
     type: String,
   },
+  userRole: {
+    type: String,
+    required: true,
+  },
+  userDocument: {
+    type: String,
+    required: true,
+  }
 });
 
 module.exports = model("Solicitud", solicitudSchema, "solicitudes");

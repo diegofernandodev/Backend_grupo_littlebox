@@ -223,8 +223,8 @@ const loginUser = async (req, res) => {
 // Crear token
 // Crear token
 function crearToken(user) {
-  const { _id, email, tenantId, rol, username } = user;
-  const payload = { userId: _id, email, tenantId, rol , username};
+  const { _id, email, tenantId, rol, username, identification } = user;
+  const payload = { userId: _id, email, tenantId, rol , username, identification};
   console.log("Atributos del payload:", payload); // Imprimir el payload
   const secret = process.env.JWT_SECRET;
   const options = { expiresIn: '1h' };
