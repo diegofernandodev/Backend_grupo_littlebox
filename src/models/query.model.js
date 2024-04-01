@@ -2,11 +2,11 @@ const { Schema, model } = require('mongoose');
 
 const querySchema = new Schema({
     tenantId:{type: String,
-        required: [true, 'TenantId is required.']
+        // required: [true, 'TenantId is required.']
     },
     
     identifier: { type: Number,
-        required: [true, 'Identifier is required.']
+        // required: [true, 'Identifier is required.']
     },
 
     question: { 
@@ -19,7 +19,7 @@ const querySchema = new Schema({
     },
     subcategory: {
         type: Schema.Types.ObjectId,
-        ref: 'subcategories',  
+        ref: 'subcategory',  
         required: true
     },
     date: { type: Date, 

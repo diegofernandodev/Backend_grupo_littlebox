@@ -1,12 +1,9 @@
 const { Schema, model } = require('mongoose')
 
 const subcategorySchema = new Schema ({
-    tenantId: {type: String,
-    required: true
+    tenantId: {type: String
 },
-    identifier: { type: String,
-    required: [true, 'Identifier is required.']
-},
+
     name: {type: String,
     required: [true, 'Name is required.']
 },

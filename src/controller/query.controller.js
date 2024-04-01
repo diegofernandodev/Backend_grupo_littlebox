@@ -80,13 +80,14 @@ controller.editQuery = async ( req, res ) => {
 
 //Show of all queries:
 controller.showQueries = async (req, res) => {
-  try {
+  
+  try{
     // const tenantId = req.tenantId
     // const queries = await queryModel.find({ tenantId })
     const queries = await queryModel.find().populate('subcategory', 'name');
-    res.json(queries);
+    res.json(queries)
 
-  } catch (err) {
+  }catch(err){
     ResponseStructure.status = "500"
     ResponseStructure.message = "It could not be found."
     ResponseStructure.data = error
@@ -94,39 +95,27 @@ controller.showQueries = async (req, res) => {
   }
 }
 
-//Delete query:
-controller.deleteQuery = async (req , res) => {
-   try {
-    const idParam = req.params.id;
-    // const tenantId = req.tenantId
-    // const removed = await queryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
-    const removed = await queryModel.findByIdAndDelete({ _id:idParam });
-
-    ResponseStructure.status = "200";
-    ResponseStructure.message = "It has been successfully removed.";
-    ResponseStructure.data = removed;
-    res.status(200).send(ResponseStructure);
-  
-
-  } catch (error) {
-    console.error('Error, not removed:', error);
-    ResponseStructure.status = "500";
-    ResponseStructure.message = "Could not delete correctly.";
-    ResponseStructure.data = error;
-    res.status(500).send(ResponseStructure);
-  }
-}
+let queryCounter = 1; 
 
 //Save query:
-controller.saveQuery = async (req, res) =>{
-  try{
+controller.saveQuery = async (req, res) => {
+  try {
+ 
+    const lastQuery = await queryModel.findOne().sort({ identifier: -1 });
+    if (lastQuery) {
+      queryCounter = lastQuery.identifier + 1;
+    }
+
     const body = req.body;
-    // const tenantId = req.tenantId
-    // body.tenantId = tenantId
-    // const newQuery = new queryModel(body, tenantId);
+    body.identifier = queryCounter;
+
+
     const newQuery = new queryModel(body);
     await newQuery.save();
-    
+
+  
+    queryCounter++;
+
     ResponseStructure.status = 200;
     ResponseStructure.message = "The query has been saved successfully.";
     ResponseStructure.data = body;
@@ -137,16 +126,49 @@ controller.saveQuery = async (req, res) =>{
     const errors = {};
 
     for (let i in errorsCatch) {
-        errors[i] = errorsCatch[i].message;
-      }
-  
-      ResponseStructure.status = 500;
-      ResponseStructure.message = "An error occurred, the query could not be saved.";
-      ResponseStructure.data = errors;
-      
-      res.status(500).json(ResponseStructure);
+      errors[i] = errorsCatch[i].message;
     }
+
+    ResponseStructure.status = 500;
+    ResponseStructure.message = "An error occurred, the query could not be saved.";
+    ResponseStructure.data = errors;
+
+    res.status(500).json(ResponseStructure);
   }
+}
+//Delete query:
+controller.deleteQuery = async (req, res) => {
+  try {
+    const idParam = req.params.id;
+    
+    // Eliminar la consulta
+    const removedQuery = await queryModel.findByIdAndDelete(idParam);
+    const removedIdentifier = removedQuery.identifier;
+
+    // Buscar consultas con identificadores mayores al eliminado
+    const queriesToUpdate = await queryModel.find({ identifier: { $gt: removedIdentifier } });
+   
+    // Actualizar los identificadores de las consultas restantes
+    for (const query of queriesToUpdate) {
+      query.identifier -= 1;
+      await query.save();
+    }
+
+    // Respuesta exitosa
+    ResponseStructure.status = 200;
+    ResponseStructure.message = "The query has been successfully removed.";
+    ResponseStructure.data = removedQuery;
+    res.status(200).send(ResponseStructure);
+  } catch (error) {
+    console.error('Error occurred while deleting query:', error);
+    // Respuesta de error
+    ResponseStructure.status = 500;
+    ResponseStructure.message = "Could not delete the query correctly.";
+    ResponseStructure.data = error;
+    res.status(500).send(ResponseStructure);
+  }
+}
+
 
 //Show query by identifier:
 controller.getConsultationIdentifier = async (req, res) => {

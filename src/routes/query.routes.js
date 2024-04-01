@@ -1,35 +1,36 @@
 const { Router } = require("express")
 const routes = Router()
 
-const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
-const checkRoleAuth = require('../middleware/roleAuth');
+// const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
+// const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteQuery, editQuery, getAQuery, getConsultationIdentifier,
     getQueriesBySubcategory, saveQuery, showQueries }= require('../controller/query.controller')
     
 //List of all queries:
-routes.get('/showQueries', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']), showQueries)
+// routes.get('/showQueries', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']), showQueries)
+routes.get('/showQueries', showQueries)
 
 // //Show queries whitout tenant:
 // routes.get('/showQueriesWT', verificarTokenMiddleware,checkRoleAuth(['colaborador', 'gerente', 'administrador']),queryWhitoutTenant )
 
  //Show a single query: 
-routes.get ('/getAQuery/:id', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']), getAQuery)
+routes.get ('/getAQuery/:id', getAQuery)
 
 //Show query by reference:
-routes.get('/getConsultationIdentifier/:identifier', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente', 'colaborador']), getConsultationIdentifier)
+routes.get('/getConsultationIdentifier/:identifier', getConsultationIdentifier)
     
 //Get query for subclass id:
-routes.get('/getQueriesBySubcategory/:identifier', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente', 'colaborador']),getQueriesBySubcategory);
+routes.get('/getQueriesBySubcategory/:identifier', getQueriesBySubcategory);
     
 //Save query: 
-routes.post('/saveQuery', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']),saveQuery)
+routes.post('/saveQuery', saveQuery)
 
 //Delete query: 
-routes.delete ('/deleteQuery/:id', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']),deleteQuery)
+routes.delete ('/deleteQuery/:id', deleteQuery)
 
 //Edit query:
-routes.put ('/editQuery/:id', verificarTokenMiddleware,checkRoleAuth(['administrador', 'gerente']), editQuery)
+routes.put ('/editQuery/:id', editQuery)
 
 
 

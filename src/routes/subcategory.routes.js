@@ -1,15 +1,15 @@
 const { Router } = require("express")
 const routes = Router()
 
-const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
-const checkRoleAuth = require('../middleware/roleAuth');
+// const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
+// const checkRoleAuth = require('../middleware/roleAuth');
 
-const { deleteSubcategories, editSubcategory, getASubcategory, getSubcategoryIdentifier,
+const { deleteSubcategories, editSubcategory, getASubcategory, 
   getSubcategoriesByCategory, saveSubcategory, showSubcategories } = require('../controller/subcategory.controller')
 
 
 //Show all subcategories whith tenant:
-routes.get('/showSubcategories', showSubcategories)
+routes.get('/showSubcategories',  showSubcategories)
 
 // //Show all subcategories whithout tenant
 // routes.get('/showSubcategoriesWhith', showSubcategoriesWhith)
@@ -17,11 +17,8 @@ routes.get('/showSubcategories', showSubcategories)
 //Show a single subcategory:
 routes.get ('/getASubcategory/:id', getASubcategory)
   
-//Get subcategory through identifier:
-routes.get('/getSubcategoryIdentifier/:identifier', getSubcategoryIdentifier)
-  
 //Get subcategory through the category id:
-routes.get('/getSubcategoriesByCategory/:identifier', getSubcategoriesByCategory);
+routes.get('/getSubcategoriesByCategory/:id', getSubcategoriesByCategory);
 
 //Save subcategory:
 routes.post('/saveSubcategory', saveSubcategory)
