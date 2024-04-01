@@ -8,7 +8,7 @@ const {
   guardarEgreso,
   actualizarEgresoId,
 } = require("../services/egresos.service");
-const {createNotificationForAdminSoli, createNotificationForColaborador} = require('../services/notificationService')
+const {createNotificationForAdminSoli, createNotificationForColaborador, sendNotificationToAdminUpdateSol} = require('../services/notificationService')
 
 
 
@@ -253,7 +253,15 @@ const modificarSolicitudPorId = async (
     }
 
     //enviar notificacion a admin
-    await sendNotificationToAdminUpdateSol(tenantId, 'Solicitud actualizada', solicitudId);
+
+     
+     // Crear el mensaje de notificación con el nombre del nuevo estado
+// Crear el mensaje de notificación con el número de solicitud
+const mensajeNotificacion = `Solicitud: ${solicitudModificada.solicitudId}, ha sido actualizada`;
+
+// Enviar notificación a los administradores que deben ser notificados
+await sendNotificationToAdminUpdateSol(tenantId, mensajeNotificacion);
+
 
     return solicitudModificada;
 
@@ -271,7 +279,6 @@ const modificarSolicitudPorId = async (
  
 const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
   try {
-
     // Verificar que el _id de la solicitud y el tenantId coincidan
     const solicitudExistente = await Solicitud.findOne({
       _id: solicitudId,
@@ -297,17 +304,6 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
 
     // Actualizar estado de la solicitud
     solicitudExistente.estado = nuevoEstadoId;
-
-    //notificacion
-    // Obtener el nombre del nuevo estado
-    const nuevoEstado = await EstadoSolicitud.findById(nuevoEstadoId);
-    const nombreNuevoEstado = nuevoEstado ? nuevoEstado.nombre : "Desconocido";
-
-    // Crear el mensaje de notificación con el nombre del nuevo estado
-    const mensajeNotificacion = `El estado de la solicitud ha cambiado a: ${nombreNuevoEstado}`;
-
-    // Enviar notificación a los colaboradores que crearon la solicitud
-    await createNotificationForColaborador(tenantId, mensajeNotificacion);
 
     const solicitudActualizada = await solicitudExistente.save();
 
@@ -358,6 +354,16 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
 
         console.log("egreso guardado:", egresoGuardado);
 
+        // Obtener el nombre del nuevo estado
+        const nuevoEstado = await estadoSolicitudModel.findById(nuevoEstadoId);
+        const nombreNuevoEstado = nuevoEstado ? nuevoEstado.nombre : "Desconocido";
+
+        // Crear el mensaje de notificación con el nombre del nuevo estado
+        const mensajeNotificacion = `El estado de la solicitud: ${solicitudActualizada.solicitudId}, ha cambiado a: ${nombreNuevoEstado}`;
+
+        // Enviar notificación a los colaboradores que crearon la solicitud
+        await createNotificationForColaborador(tenantId, mensajeNotificacion);
+
         // Continuar con la lógica, si es necesario
       } catch (error) {
         console.error("Error al guardar el egreso:", error);
@@ -376,6 +382,7 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
     }
   }
 };
+
 
 
 

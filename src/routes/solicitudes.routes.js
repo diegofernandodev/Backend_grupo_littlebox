@@ -11,7 +11,7 @@ const {
 
 
 // const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
-const verificarTokenMiddleware = require("../middleware/userAuthentication");
+const validarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
 const upload = require("../middleware/adjFacturaMdw");
 
@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
 
 router.post(
   "/guardarSolicitud",
-  verificarTokenMiddleware,
+  validarTokenMiddleware,
   checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
   upload.single("facturaUrl"), // Aquí 'factura' debe ser el nombre del campo en el formulario del frontend
   guardarSolicitud,
@@ -30,7 +30,7 @@ router.post(
 // Ruta para obtener todas las solicitudes
 router.get(
   "/obtenerTodasLasSolicitudes",
-  verificarTokenMiddleware,
+  validarTokenMiddleware,
   checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
   obtenerSolicitudes,
 );
@@ -38,14 +38,14 @@ router.get(
 // Ruta para obtener una solicitud por su ID
 router.get(
   "/obtenerSolicitud/:id",
-  verificarTokenMiddleware,
+  validarTokenMiddleware,
   checkRoleAuth(["Administrador", "Gerente", "Colaborador"]),
   obtenerSolicitudesPorId,
 );
 
 router.put(
   "/modificarSolicitud/:id",
-  verificarTokenMiddleware,
+  validarTokenMiddleware,
   checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
   upload.single("facturaUrl"), // Aquí 'factura' debe ser el nombre del campo en el formulario del frontend
   modificarSolicitudPorId,
@@ -54,7 +54,7 @@ router.put(
 // Ruta para modificar estado de una solicitud por su ID
 router.put(
   "/modificarEstadoSolicitud/:id",
-  verificarTokenMiddleware,
+  validarTokenMiddleware,
   checkRoleAuth(["Gerente", "Administrador"]),
   cambiarEstadoSolicitud,
 );
@@ -62,7 +62,7 @@ router.put(
 // Ruta para eliminar una solicitud por su ID
 router.delete(
   "/eliminarSolicitud/:id",
-  verificarTokenMiddleware,
+  validarTokenMiddleware,
   checkRoleAuth(["Gerente"]),
   eliminarSolicitudPorId,
 );

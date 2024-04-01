@@ -97,7 +97,9 @@ const sendNotificationToColaboradorSoli = async (tenantId, message,solicitudId) 
   }
 };
 
-const sendNotificationToAdminUpdateSol = async (tenantId, message,solicitudId) => {
+
+//notifcacion cuando se actualize solicitud
+const sendNotificationToAdminUpdateSol = async (tenantId,  message ) => {
   try {
     // Buscar al usuario con el rol "Colaborador" y el tenantId de la solicitud
     const administradores = await User.find({ rol: 'Administrador', tenantId: tenantId });
@@ -108,7 +110,9 @@ const sendNotificationToAdminUpdateSol = async (tenantId, message,solicitudId) =
         userId: administrador._id,
         rol: administrador.rol,
         tenantId: tenantId,
-        messageSc:`Solicitud actualizada: ${solicitudId}`
+        message:message,
+        url: '/obtenerTodasLasSolicitudes/'
+
       });
     }));
   } catch (error) {
@@ -116,6 +120,7 @@ const sendNotificationToAdminUpdateSol = async (tenantId, message,solicitudId) =
   }
 };
 
+//notificacion, ara cuando se actualize los estado de una solicitud
 const createNotificationForColaborador = async (tenantId, message) => {
   try {
     // Buscar a los colaboradores que crearon la solicitud
@@ -128,6 +133,8 @@ const createNotificationForColaborador = async (tenantId, message) => {
         rol: colaborador.rol,
         tenantId: tenantId,
         message: message,
+        url: '/obtenerTodasLasSolicitudes/'
+
       });
     }));
   } catch (error) {
@@ -153,5 +160,6 @@ module.exports = {createNotificationForSuperuser,
   createNotificationForAdmin,
   createNotificationForAdminSoli,
    getNotificationsByUserId,
-   createNotificationForColaborador
+   createNotificationForColaborador,
+   sendNotificationToAdminUpdateSol
     }
