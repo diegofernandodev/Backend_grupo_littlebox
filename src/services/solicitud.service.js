@@ -33,7 +33,7 @@ const obtenerSolicitudes = async (fechaInicio, fechaFin, tenantId, usuarioId = n
 
     // Si el usuario es colaborador, filtramos por su ID
     if (usuarioRol === 'Colaborador') {
-      query._Id = usuarioId;
+      query.userId = usuarioId;
     }
 
     // Si se proporciona un documento, se agrega a la consulta

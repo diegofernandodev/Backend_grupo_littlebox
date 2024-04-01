@@ -80,6 +80,7 @@ solicitudesController.guardarSolicitud = async (req, res) => {
     const tenantId = req.tenantId;
     const userRole = req.rol;
     const userDocument = req.identification;
+    const userId = req.userId;
 
     // Asignar valores al objeto de la solicitud
     const nuevaSolicitud = {
@@ -87,6 +88,7 @@ solicitudesController.guardarSolicitud = async (req, res) => {
       tenantId: tenantId,
       userRole: userRole,
       userDocument: userDocument,
+      userId: userId
     };
 
     console.log("rol: ", nuevaSolicitud.userRole, " documento: ", nuevaSolicitud.userDocument);
