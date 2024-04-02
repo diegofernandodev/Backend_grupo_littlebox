@@ -8,8 +8,9 @@ const {
   guardarIngreso,
 } = require("../controller/ingresos.controller");
 
-// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
-const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+
+// const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
 
 router.get("/", (req, res) => {
@@ -36,7 +37,7 @@ router.get(
 router.put(
   "/modificarIngreso/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["gerente", "administrador"]),
+  checkRoleAuth(["Gerente", "Administrador"]),
   modificarIngresoPorId,
 );
 
@@ -44,7 +45,7 @@ router.put(
 router.delete(
   "/eliminarIngreso/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["gerente"]),
+  checkRoleAuth(["Gerente", "Administrador"]),
   eliminarIngresoPorId,
 );
 

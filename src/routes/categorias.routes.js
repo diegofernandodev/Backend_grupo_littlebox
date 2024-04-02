@@ -8,10 +8,8 @@ const {
     modificarCategoriaPorId,
 } = require("../controller/categorias.controller");
 
-// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
 // const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
-const validarTokenMiddleware = require('../middleware/userAuthentication')
-
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require('../middleware/roleAuth');
 
 router.get("/", (req, res) => {
@@ -19,18 +17,18 @@ router.get("/", (req, res) => {
 });
 
 // Ruta para obtener todas las categorias
-router.get("/obtenerTodasLasCategorias", validarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), obtenerCategorias);
+router.get("/obtenerTodasLasCategorias", verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), obtenerCategorias);
 
 // Ruta para obtener una categoria por su ID
-router.get("/obtenerCategoria/:id",validarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), obtenerCategoriaId);
+router.get("/obtenerCategoria/:id",verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), obtenerCategoriaId);
 
 // Ruta para modificar una categoria por su ID
-router.put("/modificarCategoria/:id",validarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), modificarCategoriaPorId);
+router.put("/modificarCategoria/:id",verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), modificarCategoriaPorId);
 
 // Ruta para eliminar una categoria por su ID
-router.delete("/eliminarCategoria/:id",validarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), eliminarCategoriaId);
+router.delete("/eliminarCategoria/:id",verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), eliminarCategoriaId);
 
 // Ruta para guardar una nueva categoria
-router.post("/guardarCategoria",validarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), guardarCategoria);
+router.post("/guardarCategoria",verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), guardarCategoria);
 
 module.exports = router;

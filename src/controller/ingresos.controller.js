@@ -16,6 +16,8 @@ ingresosController.obtenerIngresoPorId = async (req, res) => {
   try {
     const ingresoId = req.params.id;
     const tenantId = req.tenantId;
+    console.log("id recibido en consulta..", ingresoId);
+    console.log("tenantId recibido en consulta..", tenantId);
     const ingreso = await obtenerIngresoPorId(ingresoId, tenantId);
 
     ResponseStructure.status = 200;
@@ -35,7 +37,7 @@ ingresosController.obtenerIngresoPorId = async (req, res) => {
 
 ingresosController.obtenerIngresos = async (req, res) => {
   try {
-    const { fechaInicio, fechaFin } = req.body;
+    const { fechaInicio, fechaFin } = req.query;
     const tenantId = req.tenantId;
   
     // Obtener la lista de ingresos usando el servicio
@@ -65,14 +67,12 @@ ingresosController.obtenerIngresos = async (req, res) => {
 
 ingresosController.guardarIngreso = async (req, res) => {
   try {
-    const nuevoIngreso = {
-      ...req.body,
-      User: req.body.aprobadoPor,
-    };
+  
+    const { ingreso, tenantId } = req.body;
 
-    const tenantId = req.tenantId;
-    const ingresoGuardado = await guardarIngreso(nuevoIngreso, tenantId);
-    //Enumerar:
+    console.log("nuevo ingreso recibido en consulta..", ingreso);
+    console.log("tenantId recibido en consulta..", tenantId);
+    const ingresoGuardado = await guardarIngreso(ingreso, tenantId);
     const idCurrent = ingresoGuardado._id;
     const tipoDoc = "ingreso"
 
@@ -125,6 +125,13 @@ ingresosController.modificarIngresoPorId = async (req, res) => {
     const nuevosDatos = req.body;
     const ingresoId = req.params.id;
     const tenantId = req.tenantId;
+
+    console.log("Body de la solicitud:", req.body);
+    console.log("Query de la solicitud:", req.query);
+
+    console.log("nuevos datos recibido..", nuevosDatos);
+    console.log("id recibido..", ingresoId);
+    console.log("tenantId recibido..", tenantId);
     
     const ingresoModificado = await modificarIngresoPorId(
       ingresoId,

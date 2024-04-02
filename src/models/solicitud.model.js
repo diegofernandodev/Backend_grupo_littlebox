@@ -61,11 +61,23 @@ const solicitudSchema = new Schema({
   estado: {
     type: Schema.Types.ObjectId,
     ref: "estadoSolicitud",
-    required: [true, "El estado de la solicitud es requerido"],
+    // required: [true, "El estado de la solicitud es requerido"],
     default: "65d6a34bc04706dd1cdafd6c",
   },
   facturaUrl: {
     type: String,
+  },
+  userRole: {
+    type: String,
+    required: true,
+  },
+  userDocument: {
+    type: String,
+    required: true,
+  },
+  userId: {
+    type: String,
+    required: true,
   },
 });
 

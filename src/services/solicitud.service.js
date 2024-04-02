@@ -9,8 +9,35 @@ const {
   actualizarEgresoId,
 } = require("../services/egresos.service");
 
-const obtenerSolicitudes = async (tenantId) => {
+const obtenerSolicitudes = async (fechaInicio, fechaFin, tenantId, usuarioId = null, usuarioRol = null, documento = null) => {
   try {
+
+     // Convertir las fechas a tipo Date si están presentes
+     if (!fechaInicio || !fechaFin) {
+      throw new Error("Las fechas de inicio y fin son obligatorias para filtrar las solicitudes.");
+    }
+
+    // Convertir las fechas a tipo Date
+    fechaInicio = new Date(fechaInicio);
+    fechaFin = new Date(fechaFin);
+
+    // Validar las fechas
+    if (!fechaInicio || !fechaFin || isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      throw new Error("Las fechas proporcionadas no son válidas");
+    }
+
+    let query = { tenantId, fecha: { $gte: new Date(fechaInicio), $lte: new Date(fechaFin) }, };
+
+    // Si el usuario es colaborador, filtramos por su ID
+    if (usuarioRol === 'Colaborador') {
+      query.userId = usuarioId;
+    }
+
+    // Si se proporciona un documento, se agrega a la consulta
+    if (documento) {
+      query.userDocument = documento;
+    }
+
     // Verificar que el tenantId coincide con el tenantId de las solicitudes
     const solicitudesExisten = await Solicitud.exists({ tenantId });
 
@@ -19,9 +46,9 @@ const obtenerSolicitudes = async (tenantId) => {
         "TenantId proporcionado no es válido o no se encuentra en la base de datos",
       );
     }
-
+    console.log("esta es la query", query);
     // Obtener la lista de solicitudes
-    const solicitudes = await Solicitud.find({ tenantId })
+    const solicitudes = await Solicitud.find(query)
       .populate({
         path: "categoria",
         model: categoriaModel,
@@ -80,16 +107,29 @@ const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
 };
 
 const guardarSolicitud = async (solicitud, tenantId) => {
+
+  console.log("esta es la solicitud para guardar..",solicitud);
+  // console.log("esta es la ruta del archivo para guardar..",rutaArchivo);
   // Asignar el solicitudId y el tenantId a la solicitud
   solicitud.tenantId = tenantId;
   solicitud.solicitudId = 0;
+  // solicitud.userRole = req.rol.nombre;
+  // solicitud.userDocument = req.identification;
 
-  // Validar que el objeto solicitud tenga la estructura correcta y campos requeridos
-  if (!solicitud || !solicitud.detalle || !solicitud.valor) {
-    throw new Error(
-      "El objeto solicitud no es valido o no contiene campos requeridos",
-    );
-  }
+  console.log("rol: ", solicitud.userRole, " documento: ", solicitud.userDocument);
+// console.log("file factura: ", rutaArchivo);
+  // // Validar que el objeto solicitud tenga la estructura correcta y campos requeridos
+  // if (!solicitud || !solicitud.detalle || !solicitud.valor) {
+  //   throw new Error(
+  //     "El objeto solicitud no es valido o no contiene campos requeridos",
+  //   );
+  // }
+
+  // Agregar la URL de la factura a los  datos (si se adjuntó)
+  // if (rutaArchivo) {
+  //   solicitud.facturaUrl = rutaArchivo;
+  //   console.log("url de la factura", rutaArchivo);
+  // }
 
   // Crear nueva solicitud
   const nuevaSolicitud = new Solicitud(solicitud);
@@ -142,24 +182,30 @@ const eliminarSolicitudPorId = async (solicitudId, tenantId) => {
   }
 };
 
+
 const modificarSolicitudPorId = async (
   solicitudId,
-  nuevosDatos,
+  formulario,
   tenantId,
   facturaUrl,
 ) => {
   try {
+    console.log("formulario recibido del controlador: ",formulario);
     // Verificar que el _id de la solicitud y el tenantId coincidan
     const solicitudExistente = await Solicitud.findById(solicitudId).populate({
       path: "estado",
       model: estadoSolicitudModel,
     });
+
     console.log("solicitudExistente", solicitudExistente);
+
     if (!solicitudExistente || solicitudExistente.tenantId !== tenantId) {
       throw new Error(
         "TenantId proporcionado no existe o no coincide con _id de la solicitud a modificar",
       );
     }
+
+    console.log("estado de solicitud existente ", solicitudExistente.estado?.nombre);
 
     // Verificar si la solicitud ya está finalizada o rechazada
     const nombreEstado = solicitudExistente.estado?.nombre;
@@ -168,17 +214,26 @@ const modificarSolicitudPorId = async (
         `La solicitud está ${nombreEstado} y no se puede modificar`,
       );
     }
+    
 
-    // Agregar la URL de la factura a los nuevos datos (si se adjuntó)
-    if (facturaUrl) {
-      nuevosDatos.facturaUrl = facturaUrl;
-      console.log("url de la factura", facturaUrl);
-    }
+    // Construir un nuevo objeto con todas las propiedades que deseas actualizar
+    const datosActualizados = {
+      solicitudId: formulario.solicitudId,
+      tenantId: formulario.tenantId,
+      tercero: formulario.tercero,
+      fecha: formulario.fecha,
+      detalle: formulario.detalle,
+      valor: formulario.valor,
+      categoria: formulario.categoria,
+      estado: formulario.estado,
+      facturaUrl: facturaUrl || solicitudExistente.facturaUrl, // Mantener la facturaUrl original si no se proporciona una nueva
+    };
 
+    console.log("Datos que se van a actualizar:", datosActualizados);
     // Realizar la actualización
     const solicitudModificada = await Solicitud.findByIdAndUpdate(
       solicitudId,
-      { ...nuevosDatos },
+      { ...datosActualizados },
       { new: true }, // Opciones para devolver el documento actualizado
     ).populate({
       path: "estado",
@@ -203,8 +258,10 @@ const modificarSolicitudPorId = async (
   }
 };
 
+ 
 const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
   try {
+
     // Verificar que el _id de la solicitud y el tenantId coincidan
     const solicitudExistente = await Solicitud.findOne({
       _id: solicitudId,
@@ -221,13 +278,11 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
     }
 
     // Obtener el nombre del estado actual
-    const nombreEstado = solicitudExistente.estado.nombre;
+    const nombreEstado = solicitudExistente.estado?.nombre;
     console.log("nombre del estado", nombreEstado);
 
     if (nombreEstado == "finalizado") {
-      throw new Error(
-        "La solicitud ya ha sido procesada, no se puede cambiar el estado finalizado",
-      );
+      throw new Error("La solicitud ya ha sido procesada, no se puede cambiar el estado finalizado");
     }
 
     // Actualizar estado de la solicitud
@@ -299,6 +354,8 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
     }
   }
 };
+
+
 
 module.exports = {
   obtenerSolicitudes,

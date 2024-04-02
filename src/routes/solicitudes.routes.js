@@ -9,8 +9,9 @@ const {
   cambiarEstadoSolicitud,
 } = require("../controller/solicitud.controller");
 
-// const multitenancyMiddleware = require("../middleware/multitenancyMiddleware");
-const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+
+// const verificarTokenMiddleware = require("../middleware/validarTokenMiddleware");
+const verificarTokenMiddleware = require("../middleware/userAuthentication");
 const checkRoleAuth = require("../middleware/roleAuth");
 const upload = require("../middleware/adjFacturaMdw");
 
@@ -18,11 +19,19 @@ router.get("/", (req, res) => {
   res.send("LittleBox");
 });
 
+router.post(
+  "/guardarSolicitud",
+  verificarTokenMiddleware,
+  checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
+  upload.single("facturaUrl"), // Aquí 'factura' debe ser el nombre del campo en el formulario del frontend
+  guardarSolicitud,
+);
+
 // Ruta para obtener todas las solicitudes
 router.get(
   "/obtenerTodasLasSolicitudes",
   verificarTokenMiddleware,
-  checkRoleAuth(["Gerente", "administrador", "colaborador"]),
+  checkRoleAuth(["Gerente", "Administrador", "Colaborador"]),
   obtenerSolicitudes,
 );
 
@@ -30,7 +39,7 @@ router.get(
 router.get(
   "/obtenerSolicitud/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["administrador", "administrador", "colaborador"]),
+  checkRoleAuth(["Administrador", "Gerente", "Colaborador"]),
   obtenerSolicitudesPorId,
 );
 
@@ -54,16 +63,9 @@ router.put(
 router.delete(
   "/eliminarSolicitud/:id",
   verificarTokenMiddleware,
-  checkRoleAuth(["gerente"]),
+  checkRoleAuth(["Gerente"]),
   eliminarSolicitudPorId,
 );
 
-// Ruta para guardar una solicitud por su ID
-router.post(
-  "/guardarSolicitud",
-  verificarTokenMiddleware,
-  checkRoleAuth(["Gerente", "Administrador"]),
-  guardarSolicitud,
-);
 
 module.exports = router;

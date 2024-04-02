@@ -7,11 +7,11 @@ const ingresoSchema = new Schema({
     autoIncrement: true,
   },
 
-  solicitudId: {
-    type: Number,
-    required: false,
-    // autoIncrement: true,
-  },
+  // solicitudId: {
+  //   type: Number,
+  //   required: false,
+  //   // autoIncrement: true,
+  // },
 
   tenantId: {
     type: String,
