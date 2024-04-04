@@ -25,7 +25,7 @@ const companySchema = new Schema({
     },
     pdfRunt: {
         type: String,
-        required: [false, 'PDF es requerido']
+        required: [true, 'PDF es requerido']
     },
     estado: {
         type: String,

@@ -1,6 +1,7 @@
 const Company = require('../models/compay.model');
 const nodemailer = require('nodemailer');
 const User = require('../models/user.model')
+const {sendNotificationOnCompanyCreation} = require('../services/notificationService')
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -37,25 +38,78 @@ const newCompanyService = async (companyData, pdfFile) => {
     }
 
     const newCompany = await Company.create(companyData);
+
+   
     
     // Construir el mensaje HTML excluyendo estado e ID
     const messageHtml = `
-    <p>Los datos de la nueva empresa son:</p>
-    <ul>
-      <li>Nombre: ${newCompany.nameCompany}</li>
-      <li>Teléfono: ${newCompany.telephoneCompany}</li>
-      <li>NIT: ${newCompany.tenantIdCompany}</li>
-      <li>Email: ${newCompany.emailCompany}</li>
-      <li>Dirección: ${newCompany.directionCompany}</li>
-    </ul>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Solicitud de nueva empresa</title>
+      <style>
+        /* Estilos generales */
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f7f7f7;
+          color: #333;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          width: 80%;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          background-color: #fff;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+          color: #0073b7;
+        }
+        ul {
+          list-style-type: none;
+          padding: 0;
+        }
+        li {
+          margin-bottom: 10px;
+        }
+        /* Estilos específicos */
+        .logo {
+          width: 150px;
+          margin-bottom: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Solicitud de nueva empresa</h1>
+        <ul>
+          <li><strong>Nombre de la empresa:</strong> ${companyData.nameCompany}</li>
+          <li><strong>Teléfono:</strong> ${companyData.telephoneCompany}</li>
+          <li><strong>NIT:</strong> ${companyData.tenantId}</li>
+          <li><strong>Correo:</strong> ${companyData.emailCompany}</li>
+          <li><strong>Dirección:</strong> ${companyData.directionCompany}</li>
+        </ul>
+      </div>
+    </body>
+    </html>
+    
     `;
 
     // Enviar el correo electrónico con el mensaje HTML
     await sendEmail({
       to: 'litterbox212@gmail.com',
-      subject: 'Solicitud de nueva empresa ',
+      subject: 'Solicitud de nueva empresa',
       html: messageHtml
     });
+       // Enviar notificación al SuperUsuario
+       await sendNotificationOnCompanyCreation(companyData.nameCompany);
+
     return newCompany;
   } catch (error) {
     throw new Error("Error al crear la empresa: " + error.message);
@@ -77,30 +131,70 @@ const approveCompany = async (companyId) => {
     // Consultar el usuario gerente asociado a esta empresa
     const managerUser = await User.findOne({ tenantId: updatedCompany.tenantId, rol: 'Gerente' });
 
-
     // Construir el mensaje HTML para el correo electrónico
     const messageHtml = `
-      <h1>¡Tu empresa ha sido aprobada!</h1>
-      <p>Detalles:</p>
-      <ul>
-        <li>Nombre de la EMPRESA: ${updatedCompany.nameCompany}</li>
-        <li>Teléfono de la Empresa: ${updatedCompany.telephoneCompany}</li>
-        <li>NIT: ${updatedCompany.tenantIdCompany}</li>
-        <li>Email de la Empresa: ${updatedCompany.emailCompany}</li>
-        <li>Dirección de la Empresa: ${updatedCompany.directionCompany}</li>
-      </ul>
-      <p>*************************************</p> 
-      <h2>Datos de usuario para Gerente</h2>
-      <ul>
-        <li>Usuario de gerente: ${managerUser.email}</li>
-        <li>Contraseña: ${managerUser.identification}</li>
-      </ul>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Empresa Aprobada</title>
+        <style>
+          /* Estilos generales */
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          }
+          h1 {
+            color: #0073b7;
+          }
+          ul {
+            list-style-type: none;
+            padding: 0;
+          }
+          li {
+            margin-bottom: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>¡Tu empresa ha sido aprobada!</h1>
+          <p>Estos son los datos:</p>
+          <ul>
+            <li><strong>Nombre de la Empresa:</strong> ${updatedCompany.nameCompany}</li>
+            <li><strong>Teléfono de la Empresa:</strong> ${updatedCompany.telephoneCompany}</li>
+            <li><strong>NIT:</strong> ${updatedCompany.tenantId}</li>
+            <li><strong>Email de la Empresa:</strong> ${updatedCompany.emailCompany}</li>
+            <li><strong>Dirección de la Empresa:</strong> ${updatedCompany.directionCompany}</li>
+          </ul>
+          <h2>Datos de usuario para Gerente</h2>
+          <ul>
+            <li><strong>Usuario de gerente:</strong> ${managerUser.email}</li>
+            <li><strong>Contraseña:</strong> ${managerUser.identification}</li>
+          </ul>
+          <p>Inicia sesion con este usuario Gerente<p>
+        </div>
+      </body>
+      </html>
     `;
 
     // Enviar el correo electrónico a la empresa aprobada
     await sendEmail({
       to: updatedCompany.emailCompany,
-      subject: 'Empresa aprobada',
+      subject: 'Empresa Aprobada',
       html: messageHtml
     });
 
@@ -165,7 +259,7 @@ const denyCompany = async (companyId) => {
     const deniedCompany = await Company.findByIdAndUpdate(companyId, { estado: 'denegado' });
 
     // Obtener los datos actualizados de la empresa
-    const updatedCompany = await Company.findByIdAndDelete(companyId);
+    const updatedCompany = await Company.findById(companyId);
 
     // Extraer el correo electrónico de la empresa
     const emailCompany = updatedCompany.emailCompany;
@@ -181,11 +275,54 @@ const denyCompany = async (companyId) => {
     });
 
     // Configurar los detalles del correo electrónico
+    const messageHtml = `
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Solicitud de empresa denegada</title>
+        <style>
+          /* Estilos generales */
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          }
+          h1 {
+            color: #ff0000;
+          }
+          p {
+            margin-bottom: 20px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Lamentamos informarle que su solicitud de empresa ha sido denegada.</h1>
+          <p>Por favor, contáctenos si tiene alguna pregunta.</p>
+          <p>correo: litterbox212@gmail.com
+        </div>
+      </body>
+      </html>
+    `;
+
     const mailOptions = {
       from: 'litterbox212@gmail.com', // Dirección de correo electrónico del remitente
-      to: emailCompany, // Dirección de correo electrónico del destinatario (puedes pasarla como parámetro)
+      to: emailCompany, // Dirección de correo electrónico del destinatario
       subject: 'Solicitud de empresa denegada', // Asunto del correo electrónico
-      text: 'Lamentamos informarle que su solicitud de empresa ha sido denegada.' // Contenido del correo electrónico
+      html: messageHtml // Contenido del correo electrónico en formato HTML
     };
 
     // Enviar el correo electrónico
@@ -197,7 +334,8 @@ const denyCompany = async (companyId) => {
   } catch (error) {
     throw new Error("Error al denegar la empresa: " + error.message);
   }
-}
+};
+
 
 
 const disableCompany = async (companyId) => {
@@ -237,6 +375,8 @@ const disableCompany = async (companyId) => {
     throw new Error("Error al denegar la empresa: " + error.message);
   }
 }
+
+
 const getCompanies = async () => {
   try {
     

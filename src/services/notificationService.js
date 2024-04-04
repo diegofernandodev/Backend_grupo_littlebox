@@ -67,7 +67,8 @@ const createNotificationForAdminSoli = async (tenantId, message) => {
         rol: admin.rol,
         tenantId: tenantId,
         message: 'Nueva solicitud de gasto',
-        url: '/obtenerTodasLasSolicitudes/'
+        url: '/obtenerTodasLasSolicitudes/',
+        createdAt: new Date()
       });
     }));
   } catch (error) {
@@ -154,6 +155,28 @@ const getNotificationsByUserId = async (userId) => {
 };
 
 
+const sendNotificationOnCompanyCreation = async (nameCompany) => {
+  try {
+    // 1. Definir el contenido de la notificación
+    const mensajeNotificacion = `Se ha creado una nueva solicitud de empresa: ${nameCompany}`;
+
+    // 2. Buscar usuarios con el rol de SuperUsuario
+    const superUsuarios = await User.find({ rol: 'SuperUsuario' });
+
+    // 3. Enviar la notificación a los usuarios encontrados
+    await Promise.all(superUsuarios.map(async (usuario) => {
+      await Notification.create({
+        userId: usuario._id,
+        rol: usuario.rol,
+        message: mensajeNotificacion,
+        url: '/listDeSoliDeEmpresas/'
+
+      });
+    }));
+  } catch (error) {
+    throw new Error("Error al enviar la notificación de nueva empresa: " + error.message);
+  }
+};
 
 
 module.exports = {createNotificationForSuperuser,
@@ -161,5 +184,6 @@ module.exports = {createNotificationForSuperuser,
   createNotificationForAdminSoli,
    getNotificationsByUserId,
    createNotificationForColaborador,
-   sendNotificationToAdminUpdateSol
+   sendNotificationToAdminUpdateSol,
+   sendNotificationOnCompanyCreation
     }

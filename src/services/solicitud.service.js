@@ -109,7 +109,14 @@ const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
   }
 };
 
-const guardarSolicitud = async (solicitud, tenantId) => {
+const guardarSolicitud = async (solicitud, tenantId, pdfFile) => {
+
+  if (pdfFile) {
+    // Si se proporciona un archivo adjunto, asigna la ruta del archivo al campo pdfRunt
+    solicitud.facturaUrl = pdfFile.path;
+  }
+
+  
 
   console.log("esta es la solicitud para guardar..",solicitud);
   // console.log("esta es la ruta del archivo para guardar..",rutaArchivo);

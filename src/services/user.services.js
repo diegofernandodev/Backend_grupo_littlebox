@@ -31,7 +31,7 @@ if (req.body.rol === 'Gerente' || req.body.rol === 'Colaborador') {
   status = 'pendiente'; // Si es "Gerente" o "Colaborador", establecemos el estado como "pendiente"
 }
 
-                    await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+                    // await createNotificationForAdmin(req.body.tenantId, req.body.rol);
 
 
 
@@ -50,6 +50,11 @@ if (req.body.rol === 'Gerente' || req.body.rol === 'Colaborador') {
       tenantId: req.body.tenantId,
       firstLogin: true // Nuevo campo para verificar el primer inicio de sesión
     });
+
+    // Si el rol del nuevo usuario es "Colaborador", enviar notificación
+    if (req.body.rol === 'Colaborador') {
+      await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+    }
 
     // Datos del usuario a enviar por correo
     let userData = {
@@ -236,7 +241,7 @@ function crearToken(user) {
 
 
 const getUsers = async (tenantId) => {
-  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' }, status: 'pendiente' });
+  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' },  });
 };
 
 
