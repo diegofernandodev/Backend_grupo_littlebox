@@ -133,6 +133,129 @@ controller.saveCategory = async (req, res) =>{
       res.status(500).json(ResponseStructure);
     }
   }
+
+  //Chatback: 
+  controller.showCategoriesWT = async (req, res) => {
+    try {
+      const categories = await categoryModel.find({ $or: [{ tenantId: { $exists: false } }, { tenantId: null }] });
+      res.json(categories);
+    } catch (err) {
+      console.error('Error:', err);
+      const ResponseStructure = {
+        status: 500,
+        message: "No se pudieron encontrar las categorías correctamente.",
+        data: err
+      };
+      res.status(500).send(ResponseStructure);
+    }
+  };
+  
+  // Mostrar una sola categoría sin (tenant)
+  controller.getCategoryWT = async (req, res) => {
+    try {
+      const id = req.params.id;
+      const category = await categoryModel.findById({ _id: id, tenantId: { $exists: false } });
+      if (!category) {
+        const ResponseStructure = {
+          status: 404,
+          message: "La categoría no existe."
+        };
+        return res.status(404).json(ResponseStructure);
+      }
+      res.status(200).send(category);
+    } catch (err) {
+      console.error('Error:', err);
+      const ResponseStructure = {
+        status: 500,
+        message: "No se pudo encontrar la categoría correctamente.",
+        data: err
+      };
+      res.status(500).send(ResponseStructure);
+    }
+  };
+  
+  // Editar categoría sin (tenant)
+  controller.editCategoryWT = async (req, res) => {
+    try {
+      const id = req.params.id;
+      const edited = req.body;
+      const category = await categoryModel.findByIdAndUpdate({ _id: id, tenantId: { $exists: false } }, { $set: edited });
+      if (!category) {
+        const ResponseStructure = {
+          status: 404,
+          message: "La categoría no existe."
+        };
+        return res.status(404).json(ResponseStructure);
+      }
+      const responseEdit = {
+        status: "200",
+        message: "Se ha editado la categoría correctamente.",
+        former: category,
+        edited: edited
+      };
+      res.status(200).send(responseEdit);
+    } catch (error) {
+      console.error('Error:', error);
+      const ResponseStructure = {
+        status: "500",
+        message: "No se pudo actualizar la categoría correctamente.",
+        data: error
+      };
+      res.status(500).send(ResponseStructure);
+    }
+  };
+  
+  // Eliminar categoría sin (tenant)
+  controller.deleteCategoryWT = async (req, res) => {
+    try {
+      const idParam = req.params.id;
+      const removed = await categoryModel.findByIdAndDelete({ _id: idParam, tenantId: { $exists: false } });
+      if (!removed) {
+        const ResponseStructure = {
+          status: 404,
+          message: "La categoría no existe."
+        };
+        return res.status(404).json(ResponseStructure);
+      }
+      const ResponseStructure = {
+        status: "200",
+        message: "Se ha eliminado la categoría correctamente.",
+        data: removed
+      };
+      res.status(200).send(ResponseStructure);
+    } catch (error) {
+      console.error('Error:', error);
+      const ResponseStructure = {
+        status: "500",
+        message: "No se pudo eliminar la categoría correctamente.",
+        data: error
+      };
+      res.status(500).send(ResponseStructure);
+    }
+  };
+  
+  // Guardar categoría sin (tenant)
+  controller.saveCategoryWT = async (req, res) => {
+    try {
+      const body = req.body;
+      const newCategory = new categoryModel(body);
+      await newCategory.save();
+      const ResponseStructure = {
+        status: 200,
+        message: "La categoría se ha guardado correctamente.",
+        data: body
+      };
+      res.status(200).send(ResponseStructure);
+    } catch (error) {
+      console.error('Error:', error);
+      const ResponseStructure = {
+        status: 500,
+        message: "Se produjo un error, no se pudo guardar la categoría.",
+        data: error
+      };
+      res.status(500).json(ResponseStructure);
+    }
+  };
   
   
   module.exports = controller
