@@ -1,8 +1,8 @@
 const { Router } = require("express")
 const routes = Router()
 
-// const verificarTokenMiddleware = require('../middleware/validarTokenMiddleware');
-// const checkRoleAuth = require('../middleware/roleAuth');
+const verificarTokenMiddleware = require('../middleware/userAuthentication');
+const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteCategory, editCategory, getACategory, saveCategory,
     showCategories  } = require('../controller/category.controller')
@@ -10,19 +10,20 @@ const { deleteCategory, editCategory, getACategory, saveCategory,
     
 //Mostrar todas las categorias: 
 // routes.get('/showCategories', verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador', 'colaborador']), showCategories)
-routes.get('/showCategories', showCategories)
+routes.get('/showCategories', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), showCategories)
+
 
 //Show only a single category:
-routes.get ('/category/:id', getACategory )
+routes.get ('/category/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), getACategory )
 
 //Save category:
-routes.post('/saveCategory',  saveCategory)
+routes.post('/saveCategory', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']),  saveCategory)
 
 //Delete category:
-routes.delete ('/deleteCategory/:id',  deleteCategory)
+routes.delete ('/deleteCategory/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), deleteCategory)
 
 //Edit category
-routes.put ('/editCategory/:id',  editCategory)
+routes.put ('/editCategory/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), editCategory)
 
 
 

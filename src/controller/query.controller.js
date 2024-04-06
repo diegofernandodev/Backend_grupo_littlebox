@@ -12,9 +12,8 @@ controller.getAQuery = async (req, res) => {
   try {
      
     const tenantId = req.tenantId
-    // const id = req.params.id
-    // const query = await queryModel.findById({_id: id, tenantId: tenantId})
-    const query = await queryModel.findById({_id: id})
+    const id = req.params.id
+    const query = await queryModel.findById({_id: id, tenantId: tenantId})
     
     if (!query) {
       ResponseStructure.status = "500";
@@ -36,31 +35,36 @@ controller.getAQuery = async (req, res) => {
 }
 
 //Edit query:
-controller.editQuery = async ( req, res ) => {
-
+controller.editQuery = async (req, res) => {
   try {
+      const id = req.params.id;
+      const edited = req.body;
+      const tenantId = req.tenantId;
 
-    const id = req.params.id;
-    const edited = req.body
-    // const tenantId = req.tenantId
-    // const query = await queryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
-    const query = await queryModel.findByIdAndUpdate({ _id: id }, { $set: edited });
-    
-    responseEdit.status = "200"
-    responseEdit.message = "It has been edited successfully."
-    responseEdit.former = query
-    responseEdit.edited = edited
+      const query = await queryModel.findOneAndUpdate({ _id: id, tenantId: tenantId }, edited, { new: true });
 
-    res.status(200).send(responseEdit);
-    
+      if (!query) {
+          return res.status(404).json({ status: 404, message: "Query not found or does not belong to the current tenant." });
+      }
+
+      const responseEdit = {
+          status: "200",
+          message: "It has been edited successfully.",
+          former: query,
+          edited: edited
+      };
+
+      res.status(200).send(responseEdit);
   } catch (error) {
-    console.error('Error editing:', error);
+      console.error('Error occurred while editing query:', error);
 
-    ResponseStructure.status = "500"
-    ResponseStructure.message = "Could not update correctly."
-    ResponseStructure.data = error
+      const ResponseStructure = {
+          status: "500",
+          message: "Could not update correctly.",
+          data: error
+      };
 
-    res.status(500).send(ResponseStructure);
+      res.status(500).send(ResponseStructure);
   }
 }
 
@@ -82,9 +86,8 @@ controller.editQuery = async ( req, res ) => {
 controller.showQueries = async (req, res) => {
   
   try{
-    // const tenantId = req.tenantId
-    // const queries = await queryModel.find({ tenantId })
-    const queries = await queryModel.find().populate('subcategory', 'name');
+    const tenantId = req.tenantId
+    const queries = await queryModel.find({ tenantId }).populate('subcategory', 'name');
     res.json(queries)
 
   }catch(err){
@@ -100,14 +103,15 @@ let queryCounter = 1;
 //Save query:
 controller.saveQuery = async (req, res) => {
   try {
- 
-    const lastQuery = await queryModel.findOne().sort({ identifier: -1 });
+    
+    const lastQuery = await queryModel.findOne({ tenantId: req.tenantId }).sort({ identifier: -1 });
     if (lastQuery) {
       queryCounter = lastQuery.identifier + 1;
     }
 
     const body = req.body;
     body.identifier = queryCounter;
+    body.tenantId = req.tenantId;
 
 
     const newQuery = new queryModel(body);
@@ -140,21 +144,23 @@ controller.saveQuery = async (req, res) => {
 controller.deleteQuery = async (req, res) => {
   try {
     const idParam = req.params.id;
+    const tenantId = req.tenantId;
     
-    // Eliminar la consulta
-    const removedQuery = await queryModel.findByIdAndDelete(idParam);
-    const removedIdentifier = removedQuery.identifier;
+    const removedQuery = await queryModel.findOneAndDelete({ _id: idParam, tenantId: tenantId });
+    
+    if (!removedQuery) {
+      return res.status(404).json({ status: 404, message: "Query not found or does not belong to the current tenant." });
+    }
 
-    // Buscar consultas con identificadores mayores al eliminado
-    const queriesToUpdate = await queryModel.find({ identifier: { $gt: removedIdentifier } });
-   
-    // Actualizar los identificadores de las consultas restantes
+
+    const queriesToUpdate = await queryModel.find({ identifier: { $gt: removedQuery.identifier }, tenantId: tenantId });   
+    
     for (const query of queriesToUpdate) {
       query.identifier -= 1;
       await query.save();
     }
 
-    // Respuesta exitosa
+  
     ResponseStructure.status = 200;
     ResponseStructure.message = "The query has been successfully removed.";
     ResponseStructure.data = removedQuery;
@@ -171,11 +177,13 @@ controller.deleteQuery = async (req, res) => {
 
 
 //Show query by identifier:
-controller.getConsultationIdentifier = async (req, res) => {
+controller.getQueryByNumber = async (req, res) => {
   try {
     const identifier = req.params.identifier;
+    const tenantId = req.tenantId
+    console.log(tenantId);
   
-    const query = await queryModel.findOne({ identifier: identifier });
+    const query = await queryModel.findOne({ identifier: identifier, tenantId: tenantId });
 
     
     if (!query || !query.identifier || !query.question || !query.answer || !query.subcategory) {
@@ -204,9 +212,8 @@ controller.getConsultationIdentifier = async (req, res) => {
   controller.getQueriesBySubcategory = async (req, res) => {
     try {
       const identifier = req.params.identifier;
-      // const tenantId = req.tenantId
-      // const queries = await queryModel.find({ subcategory: identifier, tenantId: tenantId });
-      const queries = await queryModel.find({ subcategory: identifier });
+      const tenantId = req.tenantId
+      const queries = await queryModel.find({ subcategory: identifier, tenantId: tenantId });
   
       res.status(200).json(queries);
       

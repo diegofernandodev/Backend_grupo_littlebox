@@ -13,9 +13,8 @@ const controller = {}
 controller.showSubcategories = async (req, res) => {
   
   try{
-    // const tenantId = req.tenantId
-    // const subcategories = await subcategoryModel.find({ tenantId })
-    const subcategories = await subcategoryModel.find().populate('category', 'name');
+    const tenantId = req.tenantId
+    const subcategories = await subcategoryModel.find({ tenantId }).populate('category', 'name');
     res.json(subcategories)
 
   }catch(err){
@@ -26,16 +25,14 @@ controller.showSubcategories = async (req, res) => {
   }
 }
 
-
 //Show a single subcategory:
 controller.getASubcategory = async (req, res) => {
   
   try {
      
     const id = req.params.id
-    // const tenantId = req.tenantId
-    // const subcategory = await subcategoryModel.findById({ _id: id, tenantId : tenantId })
-    const subcategory = await subcategoryModel.findById({ _id: id })
+    const tenantId = req.tenantId
+    const subcategory = await subcategoryModel.findById({ _id: id, tenantId : tenantId })
     
     if (!subcategory) {
       ResponseStructure.status = "500";
@@ -64,9 +61,8 @@ controller.editSubcategory = async ( req, res ) => {
 
     const id = req.params.id;
     const edited = req.body
-    // const tenantId = req.tenantId
-    // const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
-    const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id }, { $set: edited });
+    const tenantId = req.tenantId
+    const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
     
     responseEdit.status = "200"
     responseEdit.message = "It has been edited successfully."
@@ -92,9 +88,8 @@ controller.editSubcategory = async ( req, res ) => {
 controller.deleteSubcategories = async (req , res) => {
    try {
     const idParam = req.params.id;
-    // const tenantId = req.tenantId
-    // const removed = await subcategoryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
-    const removed = await subcategoryModel.findByIdAndDelete({ _id:idParam});
+    const tenantId = req.tenantId
+    const removed = await subcategoryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
 
     ResponseStructure.status = "200";
     ResponseStructure.message = "It has been successfully removed.";
@@ -115,10 +110,9 @@ controller.deleteSubcategories = async (req , res) => {
 controller.saveSubcategory = async (req, res) =>{
   try{
     const body = req.body;
-    // const tenantId = req.tenantId
-    // body.tenantId = tenantId
-    // const newSubcategory = new subcategoryModel(body, tenantId);
-    const newSubcategory = new subcategoryModel(body);
+    const tenantId = req.tenantId
+    body.tenantId = tenantId
+    const newSubcategory = new subcategoryModel(body, tenantId);
     await newSubcategory.save();
     
     ResponseStructure.status = 200;
@@ -151,9 +145,8 @@ controller.saveSubcategory = async (req, res) =>{
   controller.getSubcategoriesByCategory = async (req, res) => {
     try {
       const id = req.params.id;
-      // const tenantId = req.tenantId
-      // const subcategories = await subcategoryModel.find({ category: identifier, tenantId: tenantId });
-      const subcategories = await subcategoryModel.find({ category: id });
+      const tenantId = req.tenantId
+      const subcategories = await subcategoryModel.find({ category: id, tenantId: tenantId });
   
       res.status(200).json(subcategories);
     } catch (error) {
