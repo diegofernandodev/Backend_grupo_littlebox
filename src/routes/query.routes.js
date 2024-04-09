@@ -5,52 +5,52 @@ const verificarTokenMiddleware = require('../middleware/userAuthentication');
 const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteQuery, editQuery, getAQuery, getQueryByNumber,
-    getQueriesBySubcategory, saveQuery, showQueries, saveQueryWT, queriesWhitoutTenant, deleteQueryWT, editQueryWT, getQueriesBySubcategoryWT, getQueryByNumberWT, getQueryWT}= require('../controller/query.controller')
-    
-//List of all queries:
-routes.get('/showQueries', verificarTokenMiddleware,checkRoleAuth(['Administrador', 'Gerente', 'Colaborador']), showQueries)
+    getQueriesBySubcategory, saveQuery, showQueries, saveQueryWT, queriesWhitoutTenant, deleteQueryWT, editQueryWT, getQueriesBySubcategoryWT, getQueryByNumberWT, getQueryWT } = require('../controller/query.controller')
 
- //Show a single query: 
-routes.get ('/getAQuery/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), getAQuery)
+//List of all queries:
+routes.get('/showQueries', verificarTokenMiddleware, checkRoleAuth(['Administrador', 'Gerente', 'Colaborador', 'SuperUsuario']), showQueries)
+
+//Show a single query: 
+routes.get('/getAQuery/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getAQuery)
 
 //Show query by reference:
-routes.get('/getQueryByNumber/:identifier', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), getQueryByNumber)
-    
+routes.get('/getQueryByNumber/:identifier', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getQueryByNumber)
+
 //Get query for subclass id:
-routes.get('/getQueriesBySubcategory/:identifier', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), getQueriesBySubcategory);
-    
+routes.get('/getQueriesBySubcategory/:identifier', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getQueriesBySubcategory);
+
 //Save query: 
-routes.post('/saveQuery', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), saveQuery)
+routes.post('/saveQuery', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), saveQuery)
 
 //Delete query: 
-routes.delete ('/deleteQuery/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), deleteQuery)
+routes.delete('/deleteQuery/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), deleteQuery)
 
 //Edit query:
-routes.put ('/editQuery/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), editQuery)
+routes.put('/editQuery/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), editQuery)
 
 
 
 //chatbot por fuera de la app: 
 //Show queries whitout tenant:
-routes.get('/WTshowQueries', queriesWhitoutTenant )
+routes.get('/WTshowQueries', queriesWhitoutTenant)
 
 //Save WT: 
 routes.post('/WTsaveQuery', saveQueryWT)
 
 //Get query WT:
-routes.get('/WTgetAQuery/:id', getQueryWT )
+routes.get('/WTgetAQuery/:id', getQueryWT)
 
 //Get # TW
-routes.get('/WTgetQueryByNumber/:identifier',  getQueryByNumberWT)
+routes.get('/WTgetQueryByNumber/:identifier', getQueryByNumberWT)
 
 //Get queries by subcategory wt
-routes.get('/WTgetQueriesBySubcategory/:identifier',  getQueriesBySubcategoryWT);
+routes.get('/WTgetQueriesBySubcategory/:identifier', getQueriesBySubcategoryWT);
 
 ////Delete query: 
-routes.delete ('/WTdeleteQuery/:id', deleteQueryWT)
+routes.delete('/WTdeleteQuery/:id', deleteQueryWT)
 
 //Edit query:
-routes.put ('/WTeditQuery/:id', editQueryWT)
+routes.put('/WTeditQuery/:id', editQueryWT)
 
 
 

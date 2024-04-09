@@ -5,25 +5,25 @@ const verificarTokenMiddleware = require('../middleware/userAuthentication');
 const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteCategory, editCategory, getACategory, saveCategory,
-    showCategories, deleteCategoryWT, editCategoryWT ,getCategoryWT , saveCategoryWT, showCategoriesWT  } = require('../controller/category.controller')
+    showCategories, deleteCategoryWT, editCategoryWT, getCategoryWT, saveCategoryWT, showCategoriesWT } = require('../controller/category.controller')
 
-    
+
 //Mostrar todas las categorias: 
 // routes.get('/showCategories', verificarTokenMiddleware,checkRoleAuth(['gerente', 'administrador', 'colaborador']), showCategories)
-routes.get('/showCategories', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), showCategories)
+routes.get('/showCategories', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), showCategories)
 
 
 //Show only a single category:
-routes.get ('/category/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador', 'Colaborador']), getACategory )
+routes.get('/category/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getACategory)
 
 //Save category:
-routes.post('/saveCategory', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']),  saveCategory)
+routes.post('/saveCategory', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), saveCategory)
 
 //Delete category:
-routes.delete ('/deleteCategory/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), deleteCategory)
+routes.delete('/deleteCategory/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), deleteCategory)
 
 //Edit category
-routes.put ('/editCategory/:id', verificarTokenMiddleware,checkRoleAuth(['Gerente', 'Administrador']), editCategory)
+routes.put('/editCategory/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), editCategory)
 
 //ChatBack: 
 // Mostrar todas las categorías sin  (tenant)

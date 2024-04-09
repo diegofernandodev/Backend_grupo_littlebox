@@ -217,7 +217,7 @@ controller.getQueryByNumber = async (req, res) => {
 //Show queries whitout tenant: 
 controller.queriesWhitoutTenant = async (req, res) => {
   try {
-    const queries = await queryModel.find({ $or: [{ tenantId: { $exists: false } }, { tenantId: null }]});
+    const queries = await queryModel.find({ $or: [{ tenantId: { $exists: false } }, { tenantId: null }]}).populate('subcategory', 'name');;
 
     res.json(queries);
   } catch (error) {
@@ -305,7 +305,7 @@ controller.getQueriesBySubcategoryWT = async (req, res) => {
   }
 };
 
-let queryCounters = 0; 
+let queryCounters = 1; 
 
 //Save WT
 controller.saveQueryWT = async (req, res) => {
