@@ -403,7 +403,7 @@ const getCompaniesSuperUsuario = async () => {
     const approvedCompanies = await Company.find({estado: 'pendiente'});
     return approvedCompanies;
   } catch (error) {
-    throw new Error("Error al obtener las empresas aprobadas: " + error.message);
+    throw new Error("Error al obtener las empresas pendientes: " + error.message);
   }
 };
 

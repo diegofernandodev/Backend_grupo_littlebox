@@ -31,7 +31,18 @@ const companySchema = new Schema({
         type: String,
         enum: ['pendiente', 'aprobado', 'denegado', 'inhabilitado', 'activo'],
         default: 'pendiente'
-    },
+    },fecha: {
+        type: Date,
+        required: [true, "La fecha es requerida"],
+        validate: {
+          validator: (value) => {
+            // return typeof value === "Date";
+            return value instanceof Date;
+          },
+          message: "La fecha debe ser una cadena de tipo Date",
+        },
+      },
+    
     
 });
 

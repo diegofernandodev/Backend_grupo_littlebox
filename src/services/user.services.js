@@ -244,6 +244,16 @@ const getUsers = async (tenantId) => {
   return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' },  });
 };
 
+const getUsersSuperU = async () => {
+  try {
+    return await User.find({ status: { $in: ['activo', 'inactivo'] } });
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    throw new Error("Error al obtener usuarios");
+  }
+};
+
+
 
 //listar usuario por id
 const getUserById = async (userId) => {
@@ -396,5 +406,6 @@ module.exports = {
   enviarCorreoRestablecimiento,
   restablecerContraseña,
   logout,
-  editUser
+  editUser,
+  getUsersSuperU
 };

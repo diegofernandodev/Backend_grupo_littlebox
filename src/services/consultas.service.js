@@ -9,6 +9,7 @@ const {
 
 const Categoria = require('../models/categoria.model'); // Importa el modelo de categoría
 const Tercero = require('../models/terceros.Model'); // Importa el modelo de tercero
+const Egreso = require('../models/egresos.Model.js')
 
 
 // Función para obtener el nombre de una categoría a partir de su ObjectId
@@ -111,33 +112,33 @@ const movimientoDeCajaMenor = async (
     if (saldoFinal === 50000) {
       await enviarNotificacionPush("¡Alerta! El saldo de la caja es de 50.000");
     }
+
     // Formatear la lista de movimientos
-const listaMovimientosFormateada = await Promise.all(
-  movimientosConSaldo.map(async (movimiento) => {
-    const categoriaNombre = await obtenerNombreCategoria(movimiento.categoria);
-    const terceroNombre = await obtenerNombreTercero(movimiento.tercero);
-    return {
-      fecha: movimiento.fecha.toLocaleDateString(),
-      numeroDocumento:
-        movimiento.tipo === "Ingreso"
-          ? movimiento.ingresoId 
-          : movimiento.egresoId,
-      valor: movimiento.valor.toLocaleString(),
-      tipoMovimiento: movimiento.tipo === "Ingreso" ? "Ingreso" : "Egreso",
-      detalle: movimiento.detalle,
-      saldo: movimiento.saldo,
-      categoria: categoriaNombre,
-      tercero: terceroNombre,
-    };
-  }) 
-); 
-  
+    const listaMovimientosFormateada = await Promise.all(
+      movimientosConSaldo.map(async (movimiento) => {
+        const categoriaNombre = await obtenerNombreCategoria(movimiento.categoria);
+        const terceroNombre = await obtenerNombreTercero(movimiento.tercero);
+        return {
+          fecha: movimiento.fecha.toLocaleDateString(),
+          numeroDocumento:
+            movimiento.tipo === "Ingreso"
+              ? movimiento.ingresoId 
+              : movimiento.egresoId,
+          valor: movimiento.valor.toLocaleString(),
+          tipoMovimiento: movimiento.tipo === "Ingreso" ? "Ingreso" : "Egreso",
+          detalle: movimiento.detalle,
+          saldo: movimiento.saldo,
+          categoria: categoriaNombre,
+          tercero: terceroNombre,
+        };
+      }) 
+    ); 
+
     // Devolver el objeto con la información del informe
     return {
       listaMovimientos: listaMovimientosFormateada,
       totalDebitos: totalDebitos.toLocaleString(),
       totalCreditos: totalCreditos.toLocaleString(),
-      // saldoFinal: movimientosConSaldo[movimientosConSaldo.length - 1].saldo,
       saldoFinal: saldoFinal,
     };
   } catch (error) {
@@ -145,4 +146,111 @@ const listaMovimientosFormateada = await Promise.all(
   }
 };
 
-module.exports = { movimientoDeCajaMenor };
+
+
+const obtenerGastoRealMesActual = async (tenantId) => {
+  try {
+    // Obtener la fecha actual
+    const fechaActual = new Date();
+
+    // Calcular el primer día del mes actual
+    const primerDiaMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+
+    // Calcular el primer día del próximo mes
+    const primerDiaProximoMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 1);
+
+    // Obtener egresos dentro del mes actual
+    const egresosMesActual = await Egreso.find({
+      tenantId: tenantId,
+      fecha: { $gte: primerDiaMesActual, $lt: primerDiaProximoMes }
+    });
+
+    return egresosMesActual;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+const obtenerTercerosMasUtilizados = async (tenantId) => {
+  try {
+    // Obtener la fecha actual y del mes anterior
+    const fechaActual = new Date();
+    const primerDiaMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+    const primerDiaMesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1);
+
+    const tercerosMasUtilizados = await Egreso.aggregate([
+      { 
+        $match: { 
+          tenantId: tenantId,
+          fecha: { 
+            $gte: primerDiaMesAnterior, // Desde el primer día del mes anterior
+            $lt: primerDiaMesActual // Hasta el primer día del mes actual
+          } 
+        } 
+      },
+      { $group: { _id: "$tercero", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Obtener los nombres de los terceros más utilizados
+    const tercerosNombres = await Promise.all(tercerosMasUtilizados.map(async (tercero) => {
+      const terceroNombre = await obtenerNombreTercero(tercero._id);
+      return {
+        terceroId: tercero._id,
+        terceroNombre: terceroNombre,
+        count: tercero.count
+      };
+    }));
+
+    return tercerosNombres;
+  } catch (error) {
+    throw new Error("Error al obtener los terceros más utilizados en los egresos");
+  }
+};
+
+
+const obtenerCategoriaMasUtilizadas = async (tenantId) => {
+  try {
+    // Obtener la fecha actual y del mes anterior
+    const fechaActual = new Date();
+    const primerDiaMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+    const primerDiaMesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1);
+
+    const CategoriaMasUtilizadas = await Egreso.aggregate([
+      { 
+        $match: { 
+          tenantId: tenantId,
+          fecha: { 
+            $gte: primerDiaMesAnterior, // Desde el primer día del mes anterior
+            $lt: primerDiaMesActual // Hasta el primer día del mes actual
+          } 
+        } 
+      },
+      { $group: { _id: "$categoria", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Obtener los nombres de los terceros más utilizados
+    const categoriaNombres = await Promise.all(CategoriaMasUtilizadas.map(async (categoria) => {
+      const categoriaNombre = await obtenerNombreCategoria(categoria._id);
+      return {
+        categoriaId: categoria._id,
+        categoriaNombre: categoriaNombre,
+        count: categoria.count
+      };
+    }));
+
+    return categoriaNombres;
+  } catch (error) {
+    throw new Error("Error al obtener las categorias más utilizadas en los egresos");
+  }
+};
+
+
+
+
+module.exports = { movimientoDeCajaMenor, obtenerGastoRealMesActual, obtenerTercerosMasUtilizados, obtenerCategoriaMasUtilizadas };
