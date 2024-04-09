@@ -12,6 +12,7 @@ const routesLogin = require("../routes/login.routes");
 const companys = require("../routes/company.routes");
 const estadoSolicitudes = require("../routes/estadoSolicitudes.routes")
 const notification= require('../routes/notification.routes')
+const saldoCajaRoutes= require('../routes/saldoDeCaja.routes')
 
 const cors = require("cors");
 const bodyParser = require('body-parser');
@@ -53,6 +54,7 @@ appLittlebox.use(routesUsers);
 appLittlebox.use(companys)
 appLittlebox.use(routesConsultas);
 appLittlebox.use(notification)
+appLittlebox.use(saldoCajaRoutes)
 
 appLittlebox.set("port", process.env.PORT || port);
 
