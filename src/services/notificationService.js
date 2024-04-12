@@ -78,6 +78,27 @@ const createNotificationForAdminSoli = async (tenantId, message) => {
 
 
 
+const sendNotificationToRole = async (tenantId, roleName, message) => {
+  try {
+      // Encontrar usuarios con el rol especificado en el tenant
+      const users = await User.find({ tenantId, role: 'Gerente' });
+
+      // Crear y enviar notificación a cada usuario encontrado
+      await Promise.all(users.map(async (user) => {
+          await Notification.create({
+              userId: user._id,
+              message,
+              read: false // La notificación se marca como no leída por defecto
+          });
+      }));
+  } catch (error) {
+      console.error('Error al enviar la notificación al rol:', error);
+      throw error;
+  }
+}
+
+
+
 
 const sendNotificationToColaboradorSoli = async (tenantId, message,solicitudId) => {
   try {
@@ -179,11 +200,34 @@ const sendNotificationOnCompanyCreation = async (nameCompany) => {
 };
 
 
+const notificationSaldoCaja = async (tenantId,  message) => {
+  try {
+    // Encontrar usuarios con el rol especificado en el tenant
+    const users = await User.find({ tenantId, rol: 'Gerente' });
+
+    // Crear y enviar notificación a cada usuario encontrado
+    await Promise.all(users.map(async (user) => {
+      await Notification.create({
+        userId: user._id,
+        rol: user.rol,
+        message,
+        url: '/listIngresos/'
+      });
+    }));
+  } catch (error) {
+    console.error('Error al enviar la notificación al rol:', error);
+    throw error;
+  }
+}
+
+
 module.exports = {createNotificationForSuperuser,
   createNotificationForAdmin,
   createNotificationForAdminSoli,
    getNotificationsByUserId,
    createNotificationForColaborador,
    sendNotificationToAdminUpdateSol,
-   sendNotificationOnCompanyCreation
+   sendNotificationOnCompanyCreation,
+   sendNotificationToRole,
+   notificationSaldoCaja
     }

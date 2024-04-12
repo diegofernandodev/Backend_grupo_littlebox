@@ -9,7 +9,7 @@ const {
   actualizarEgresoId,
 } = require("../services/egresos.service");
 const {createNotificationForAdminSoli, createNotificationForColaborador, sendNotificationToAdminUpdateSol} = require('../services/notificationService')
-
+const {verificarSaldoCaja, actualizarSaldoCaja }= require('../services/saldoDeCaja.Service')
 
 
 const obtenerSolicitudes = async (fechaInicio, fechaFin, tenantId, usuarioId = null, usuarioRol = null, documento = null) => {
@@ -286,6 +286,21 @@ await sendNotificationToAdminUpdateSol(tenantId, mensajeNotificacion);
  
 const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
   try {
+    // Verificar si el nuevo estado es "aprobado" y si el saldo de caja es suficiente
+    if (nuevoEstadoId === '65d6a435c04706dd1cdafd6d') {
+      await verificarSaldoCaja(tenantId);
+
+      const saldoActual = await actualizarSaldoCaja(tenantId);
+
+      // Obtener el valor de la solicitud
+      const solicitud = await Solicitud.findById(solicitudId);
+      const valorSolicitud = solicitud.valor;
+
+      if (saldoActual <= valorSolicitud) {
+        throw new Error('No se puede cambiar el estado a "aprobado" debido a saldo insuficiente en caja. Se notificara a su Gerente');
+      }
+    }
+
     // Verificar que el _id de la solicitud y el tenantId coincidan
     const solicitudExistente = await Solicitud.findOne({
       _id: solicitudId,
@@ -295,7 +310,7 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
       model: estadoSolicitudModel,
     });
 
-    console.log("solicitud existente", solicitudExistente);
+    // console.log("solicitud existente", solicitudExistente);
 
     if (!solicitudExistente) {
       throw new Error("Solicitud no encontrada");
@@ -303,9 +318,9 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
 
     // Obtener el nombre del estado actual
     const nombreEstado = solicitudExistente.estado?.nombre;
-    console.log("nombre del estado", nombreEstado);
+    // console.log("nombre del estado", nombreEstado);
 
-    if (nombreEstado == "finalizado") {
+    if (nombreEstado === "finalizado") {
       throw new Error("La solicitud ya ha sido procesada, no se puede cambiar el estado finalizado");
     }
 
@@ -314,15 +329,15 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
 
     const solicitudActualizada = await solicitudExistente.save();
 
-    console.log(
-      "este es el nuevo id del estado de la solicitud ",
-      solicitudActualizada.estado._id,
-      "este es el nuevoEstadoId pasado como parametro: ",
-      nuevoEstadoId,
-    );
+    // console.log(
+    //   "este es el nuevo id del estado de la solicitud ",
+    //   solicitudActualizada.estado._id,
+    //   "este es el nuevoEstadoId pasado como parametro: ",
+    //   nuevoEstadoId,
+    // );
 
     // Verificar si el nuevo estado es "finalizado"
-    if (nuevoEstadoId == solicitudActualizada.estado._id) {
+    if (nuevoEstadoId === solicitudActualizada.estado._id) {
       // Crear egreso de caja utilizando los datos de la solicitud
       const egreso = new Egreso({
         tenantId: solicitudActualizada.tenantId,
@@ -336,12 +351,12 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
         // Otros campos necesarios para el egreso de caja...
       });
 
-      console.log(
-        "egreso creado de solicitud:",
-        egreso,
-        "tenantId de la solicitud:",
-        solicitudActualizada.tenantId,
-      );
+      // console.log(
+      //   "egreso creado de solicitud:",
+      //   egreso,
+      //   "tenantId de la solicitud:",
+      //   solicitudActualizada.tenantId,
+      // );
 
       try {
         // Guardar el egreso de caja
@@ -359,7 +374,7 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
         );
         egresoGuardado.egresoId = egresoId;
 
-        console.log("egreso guardado:", egresoGuardado);
+        // console.log("egreso guardado:", egresoGuardado);
 
         // Obtener el nombre del nuevo estado
         const nuevoEstado = await estadoSolicitudModel.findById(nuevoEstadoId);
@@ -389,7 +404,6 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
     }
   }
 };
-
 
 
 
