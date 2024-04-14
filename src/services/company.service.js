@@ -380,7 +380,7 @@ const disableCompany = async (companyId) => {
 const getCompanies = async () => {
   try {
     
-    const approvedCompanies = await Company.find({ estado: 'aprobado'});
+    const approvedCompanies = await Company.find({ estado: { $in: ['aprobado', 'inhabilitado'] } });
     return approvedCompanies;
   } catch (error) {
     throw new Error("Error al obtener las empresas aprobadas: " + error.message);
