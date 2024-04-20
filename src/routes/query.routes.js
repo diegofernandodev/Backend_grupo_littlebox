@@ -17,7 +17,7 @@ routes.get('/getAQuery/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente',
 routes.get('/getQueryByNumber/:identifier', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getQueryByNumber)
 
 //Get query for subclass id:
-routes.get('/getQueriesBySubcategory/:identifier', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getQueriesBySubcategory);
+routes.get('/getQueriesBySubcategory/:subcategoryName', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getQueriesBySubcategory);
 
 //Save query: 
 routes.post('/saveQuery', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), saveQuery)

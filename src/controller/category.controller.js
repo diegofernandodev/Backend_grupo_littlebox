@@ -52,87 +52,168 @@ controller.getACategory = async (req, res) => {
 }
 
 
-//Edit a category:
-controller.editCategory = async ( req, res ) => {
-
+//Save category:
+controller.saveCategory = async (req, res) => {
   try {
+    const tenantId = req.tenantId; 
+    let categoryCounter = 1; 
 
-    const id = req.params.id;
-    const edited = req.body
-    const tenantId = req.tenantId
-    const category = await categoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
-    
-    responseEdit.status = "200"
-    responseEdit.message = "It has been edited successfully."
-    responseEdit.former = category
-    responseEdit.edited = edited
+    const lastCategory = await categoryModel.findOne({ tenantId }).sort({ identifier: -1 });
 
-    res.status(200).send(responseEdit);
-    
+    if (lastCategory && typeof lastCategory.identifier === 'number') {
+      categoryCounter = lastCategory.identifier + 1;
+    }
+
+    if (isNaN(categoryCounter)) {
+      throw new Error('categoryCounter is not a valid number.');
+    }
+
+    const body = req.body;
+    body.identifier = categoryCounter;
+    body.tenantId = tenantId; 
+
+    const newCategory = new categoryModel(body);
+    await newCategory.save();
+
+    const ResponseStructure = {
+      status: 200,
+      message: "The category has been saved successfully.",
+      data: body
+    };
+
+    res.status(200).json(ResponseStructure);
   } catch (error) {
-    console.error('Error editing:', error);
+    console.error('An error occurred, the category could not be saved:', error);
+    const ResponseStructure = {
+      status: 500,
+      message: "An error occurred, the category could not be saved.",
+      error: error.message
+    };
 
-    ResponseStructure.status = "500"
-    ResponseStructure.message = "Could not update correctly."
-    ResponseStructure.data = error
-
-    res.status(500).send(ResponseStructure);
+    res.status(500).json(ResponseStructure);
   }
-}
+};
+
+// Edit a category
+controller.editCategory = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const edited = req.body;
+    const tenantId = req.tenantId;
+
+    const originalCategory = await categoryModel.findOne({ _id: id, tenantId: tenantId });
+
+    if (!originalCategory) {
+      return res.status(404).json({ status: 404, message: "Category not found or does not belong to the current tenant." });
+    }
+
+    const originalIdentifier = originalCategory.identifier;
+
+    delete edited.identifier;
+
+    const updatedCategory = await categoryModel.findOneAndUpdate({ _id: id, tenantId: tenantId }, edited, { new: true });
+
+    if (!updatedCategory) {
+      return res.status(500).json({ status: 500, message: "Could not update correctly." });
+    }
+
+    const responseEdit = {
+      status: 200,
+      message: "Category has been edited successfully.",
+      former: {
+        ...originalCategory.toObject(),
+        identifier: originalIdentifier
+      },
+      edited: updatedCategory
+    };
+
+    res.status(200).json(responseEdit);
+  } catch (error) {
+    console.error('Error occurred while editing category:', error);
+
+    const ResponseStructure = {
+      status: 500,
+      message: "Could not update correctly.",
+      data: error
+    };
+
+    res.status(500).json(ResponseStructure);
+  }
+};
 
 
 //Delete category
-controller.deleteCategory = async (req , res) => {
-   try {
+controller.deleteCategory = async (req, res) => {
+  try {
     const idParam = req.params.id;
-    const tenantId = req.tenantId
-    const removed = await categoryModel.findByIdAndDelete({ _id: idParam, tenantId: tenantId});
-
-    ResponseStructure.status = "200";
-    ResponseStructure.message = "It has been successfully removed.";
-    ResponseStructure.data = removed;
-    res.status(200).send(ResponseStructure);
-  
-
-  } catch (error) {
-    console.error('Error, not removed:', error);
-    ResponseStructure.status = "500";
-    ResponseStructure.message = "Could not delete correctly.";
-    ResponseStructure.data = error;
-    res.status(500).send(ResponseStructure);
-  }
-}
-
-
-//Save category:
-controller.saveCategory = async (req, res) =>{
-  try{
-    const body = req.body;
-    const tenantId = req.tenantId
-    body.tenantId = tenantId
-    const newCategory = new categoryModel(body,tenantId);
-    await newCategory.save();
+    const tenantId = req.tenantId;
     
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "The category has been saved successfully.";
-    ResponseStructure.data = body;
+    const removed = await categoryModel.findByIdAndDelete({ _id: idParam, tenantId: tenantId });
 
-    res.status(200).send(ResponseStructure);
-  } catch (error) {
-    const errorsCatch = error.errors;
-    const errors = {};
-
-    for (let i in errorsCatch) {
-        errors[i] = errorsCatch[i].message;
-      }
-  
-      ResponseStructure.status = 500;
-      ResponseStructure.message = "An error occurred, the category could not be saved.";
-      ResponseStructure.data = errors;
-      
-      res.status(500).json(ResponseStructure);
+    if (!removed) {
+      return res.status(404).json({ status: 404, message: "Category not found or does not belong to the current tenant." });
     }
+
+    const categoriesToUpdate = await categoryModel.find({ identifier: { $gt: removed.identifier }, tenantId: tenantId });
+
+    for (const category of categoriesToUpdate) {
+      category.identifier -= 1;
+      await category.save();
+    }
+
+    const ResponseStructure = {
+      status: 200,
+      message: "Category has been successfully removed.",
+      data: removed
+    };
+
+    res.status(200).json(ResponseStructure);
+  } catch (error) {
+    console.error('Error occurred while deleting category:', error);
+
+    const ResponseStructure = {
+      status: 500,
+      message: "Could not delete category correctly.",
+      data: error
+    };
+
+    res.status(500).json(ResponseStructure);
   }
+};
+
+// Show category by identifier
+controller.getCategoryByNumber = async (req, res) => {
+  try {
+    const identifier = req.params.identifier;
+    const tenantId = req.tenantId;
+
+    const category = await categoryModel.findOne({ identifier: identifier, tenantId: tenantId });
+
+    if (!category || !category.identifier || !category.name || !category.description) {
+      return res.status(404).json({ status: 404, message: "The category does not exist or has an invalid format.", data: null });
+    }
+
+    const ResponseStructure = {
+      status: 200,
+      message: "Category found.",
+      data: {
+        ...category.toObject(),
+        identifier: category.identifier 
+      }
+    };
+
+    res.status(200).json(ResponseStructure);
+  } catch (err) {
+    console.error('Search error:', err);
+    const ResponseStructure = {
+      status: 500,
+      message: "An error occurred while searching for the category.",
+      data: err
+    };
+    res.status(500).json(ResponseStructure);
+  }
+};
+
 
   //Chatback: 
   controller.showCategoriesWT = async (req, res) => {

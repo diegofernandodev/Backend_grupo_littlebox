@@ -53,108 +53,164 @@ controller.getASubcategory = async (req, res) => {
   }
 }
 
-
-//Edit Subcategory:
-controller.editSubcategory = async ( req, res ) => {
-
+//Save Subcategory
+controller.saveSubcategory = async (req, res) => {
   try {
+    const { tenantId } = req;
 
-    const id = req.params.id;
-    const edited = req.body
-    const tenantId = req.tenantId
-    const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id, tenantId: tenantId }, { $set: edited });
-    
-    responseEdit.status = "200"
-    responseEdit.message = "It has been edited successfully."
-    responseEdit.former = subcategory
-    responseEdit.edited = edited
+    let queryCounter = 1.001; 
 
-    res.status(200).send(responseEdit);
-    
-  } catch (error) {
-    console.error('Error editing:', error);
+    const lastSubcategory = await subcategoryModel.findOne({ tenantId }).sort({ identifier: -1 });
 
-    ResponseStructure.status = "500"
-    ResponseStructure.message = "Could not update correctly."
-    ResponseStructure.data = error
+    if (lastSubcategory && typeof lastSubcategory.identifier === 'number') {
+      let nextCounter = lastSubcategory.identifier + 0.001;
+      queryCounter = parseFloat(nextCounter.toFixed(3));
+    }
 
-    res.status(500).send(ResponseStructure);
-  }
-}
-
-
-
-//Delete Subcategories:
-controller.deleteSubcategories = async (req , res) => {
-   try {
-    const idParam = req.params.id;
-    const tenantId = req.tenantId
-    const removed = await subcategoryModel.findByIdAndDelete({ _id:idParam, tenantId: tenantId});
-
-    ResponseStructure.status = "200";
-    ResponseStructure.message = "It has been successfully removed.";
-    ResponseStructure.data = removed;
-    res.status(200).send(ResponseStructure);
-  
-
-  } catch (error) {
-    console.error('Error, not removed:', error);
-    ResponseStructure.status = "500";
-    ResponseStructure.message = "Could not delete correctly.";
-    ResponseStructure.data = error;
-    res.status(500).send(ResponseStructure);
-  }
-}
-
-//Save subcategory:
-controller.saveSubcategory = async (req, res) =>{
-  try{
     const body = req.body;
-    const tenantId = req.tenantId
-    body.tenantId = tenantId
-    const newSubcategory = new subcategoryModel(body, tenantId);
+    body.identifier = queryCounter;
+    body.tenantId = tenantId;
+
+    const newSubcategory = new subcategoryModel(body);
     await newSubcategory.save();
-    
-    ResponseStructure.status = 200;
-    ResponseStructure.message = "The Subcategory has been saved successfully.";
-    ResponseStructure.data = body;
 
-    res.status(200).send(ResponseStructure);
+    const ResponseStructure = {
+      status: 200,
+      message: "The Subcategory has been saved successfully.",
+      data: body
+    };
+
+    res.status(200).json(ResponseStructure);
   } catch (error) {
-    const errorsCatch = error.errors;
-    const errors = {};
+    console.error('An error occurred, the subcategory could not be saved:', error);
+    const ResponseStructure = {
+      status: 500,
+      message: "An error occurred, the subcategory could not be saved.",
+      error: error.message
+    };
+    res.status(500).json(ResponseStructure);
+  }
+};
 
-    for (let i in errorsCatch) {
-        errors[i] = errorsCatch[i].message;
+//Edit subcategory
+controller.editSubcategory = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const editedSubcategory = req.body;
+    const tenantId = req.tenantId;
+
+    const originalSubcategory = await subcategoryModel.findOne({ _id: id, tenantId: tenantId });
+
+    if (!originalSubcategory) {
+      return res.status(404).json({ status: 404, message: "Subcategory not found or does not belong to the current tenant." });
+    }
+
+    const originalIdentifier = originalSubcategory.identifier;
+
+    delete editedSubcategory.identifier;
+
+    const updatedSubcategory = await subcategoryModel.findOneAndUpdate(
+      { _id: id, tenantId: tenantId },
+      editedSubcategory,
+      { new: true }
+    );
+
+    if (!updatedSubcategory) {
+      return res.status(500).json({ status: 500, message: "Could not update correctly." });
+    }
+
+    const responseEdit = {
+      status: 200,
+      message: "The subcategory has been edited successfully.",
+      former: {
+        ...originalSubcategory.toObject(),
+        identifier: originalIdentifier 
+      },
+      edited: updatedSubcategory
+    };
+
+    res.status(200).json(responseEdit);
+  } catch (error) {
+    console.error('Error occurred while editing subcategory:', error);
+    const ResponseStructure = {
+      status: 500,
+      message: "Could not update correctly.",
+      data: error
+    };
+    res.status(500).json(ResponseStructure);
+  }
+};
+
+
+//Delete subcategory
+controller.deleteSubcategories = async (req, res) => {
+  try {
+    const idParam = req.params.id;
+    const tenantId = req.tenantId;
+
+    const removedSubcategory = await subcategoryModel.findOneAndDelete({ _id: idParam, tenantId: tenantId });
+
+    if (!removedSubcategory) {
+      return res.status(404).json({ status: 404, message: "Subcategory not found or does not belong to the current tenant." });
+    }
+
+    const subcategoriesToUpdate = await subcategoryModel.find({ identifier: { $gt: removedSubcategory.identifier }, tenantId: tenantId });
+
+    for (const subcategory of subcategoriesToUpdate) {
+      subcategory.identifier -= 0.001;
+      subcategory.identifier = parseFloat(subcategory.identifier.toFixed(3));
+      await subcategory.save();
+    }
+
+    const ResponseStructure = {
+      status: 200,
+      message: "The subcategory has been successfully removed.",
+      data: removedSubcategory
+    };
+    res.status(200).json(ResponseStructure);
+  } catch (error) {
+    console.error('Error occurred while deleting subcategory:', error);
+    const ResponseStructure = {
+      status: 500,
+      message: "Could not delete the subcategory correctly.",
+      data: error
+    };
+    res.status(500).json(ResponseStructure);
+  }
+};
+
+ 
+
+  //Get subcategoryByNumber
+  controller.getSubcategoryByNumber = async (req, res) => {
+    try {
+      const identifier = req.params.identifier;
+      
+      const subcategory = await subcategoryModel.findOne({ identifier: identifier });
+  
+      if (!subcategory || !subcategory.identifier || !subcategory.name || !subcategory.description) {
+        const ResponseStructure = {
+          status: 404,
+          message: "The subcategory does not exist or has an invalid format.",
+          data: null
+        };
+        return res.status(404).json(ResponseStructure);
       }
   
-      ResponseStructure.status = 500;
-      ResponseStructure.message = "An error occurred, the subcategory could not be saved.";
-      ResponseStructure.data = errors;
-      
-      res.status(500).json(ResponseStructure);
-    }
-  }
-
-
-
-
-
-
-//Get subcategory through the category id:
-  controller.getSubcategoriesByCategory = async (req, res) => {
-    try {
-      const id = req.params.id;
-      const tenantId = req.tenantId
-      const subcategories = await subcategoryModel.find({ category: id, tenantId: tenantId });
-  
-      res.status(200).json(subcategories);
-    } catch (error) {
+      const ResponseStructure = {
+        status: 200,
+        message: "Subcategory found.",
+        data: subcategory
+      };
+      res.status(200).json(ResponseStructure);
+    } catch (err) {
       console.error('Search error:', err);
-      ResponseStructure.status = "500";
-      ResponseStructure.message = "Could not be found correctly.";
-      ResponseStructure.data = err;
-      res.status(500).send(ResponseStructure);
+      const ResponseStructure = {
+        status: 500,
+        message: "An error occurred while searching for the subcategory.",
+        data: err
+      };
+      res.status(500).json(ResponseStructure);
     }
   };
 
@@ -202,23 +258,47 @@ controller.saveSubcategory = async (req, res) =>{
   controller.editSubcategoryWT = async (req, res) => {
     try {
       const id = req.params.id;
-      const edited = req.body;
-      const subcategory = await subcategoryModel.findByIdAndUpdate({ _id: id, tenantId: { $exists: false } }, { $set: edited });
+      const editedSubcategory = req.body;
+  
+      const originalSubcategory = await subcategoryModel.findOne({ _id: id });
+  
+      if (!originalSubcategory) {
+        return res.status(404).json({ status: 404, message: "Subcategory not found or does not belong to the current tenant." });
+      }
+  
+      const originalIdentifier = originalSubcategory.identifier;
+  
+      delete editedSubcategory.identifier;
+  
+      const updatedSubcategory = await subcategoryModel.findOneAndUpdate(
+        { _id: id },
+        editedSubcategory,
+        { new: true }
+      );
+  
+      if (!updatedSubcategory) {
+        return res.status(500).json({ status: 500, message: "Could not update correctly." });
+      }
+  
       const responseEdit = {
-        status: "200",
-        message: "It has been edited successfully.",
-        former: subcategory,
-        edited: edited
+        status: 200,
+        message: "The subcategory has been edited successfully.",
+        former: {
+          ...originalSubcategory.toObject(),
+          identifier: originalIdentifier 
+        },
+        edited: updatedSubcategory
       };
-      res.status(200).send(responseEdit);
+  
+      res.status(200).json(responseEdit);
     } catch (error) {
-      console.error('Error editing:', error);
+      console.error('Error occurred while editing subcategory:', error);
       const ResponseStructure = {
-        status: "500",
+        status: 500,
         message: "Could not update correctly.",
         data: error
       };
-      res.status(500).send(ResponseStructure);
+      res.status(500).json(ResponseStructure);
     }
   };
   

@@ -7,7 +7,8 @@ const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteSubcategories, editSubcategory, getASubcategory,
   getSubcategoriesByCategory, saveSubcategory, showSubcategories, deleteSubcategoryWT,
-  editSubcategoryWT, getSubcategoriesByCategoryWT, getSubcategoryWT, saveSubcategoryWT, showSubcategoriesWT } = require('../controller/subcategory.controller')
+  editSubcategoryWT, getSubcategoriesByCategoryWT, getSubcategoryWT, saveSubcategoryWT, 
+  showSubcategoriesWT, getSubcategoryByNumber} = require('../controller/subcategory.controller');
 
 
 //Show all subcategories whith tenant:
@@ -18,6 +19,9 @@ routes.get('/getASubcategory/:id', as, checkRoleAuth(['Gerente', 'Administrador'
 
 //Get subcategory through the category id:
 routes.get('/getSubcategoriesByCategory/:id', as, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getSubcategoriesByCategory);
+
+//Get subcategory through the category id:
+routes.get('/getSubcategoryByNumber/:identifier', as, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getSubcategoryByNumber);
 
 //Save subcategory:
 routes.post('/saveSubcategory', as, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), saveSubcategory)
@@ -39,7 +43,7 @@ routes.get('/WTgetSubcategory/:id', getSubcategoryWT)
 routes.get('/WTgetSubcategoriesByCategory/:id', getSubcategoriesByCategoryWT);
 
 //Save subcategory wt:
-routes.post('/WTsaveSubcategory', saveSubcategory)
+routes.post('/WTsaveSubcategory', saveSubcategoryWT)
 
 //Delete subcategories wt:
 routes.delete('/WTdeleteSubcategories/:id', deleteSubcategoryWT)

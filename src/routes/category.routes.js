@@ -5,7 +5,8 @@ const verificarTokenMiddleware = require('../middleware/userAuthentication');
 const checkRoleAuth = require('../middleware/roleAuth');
 
 const { deleteCategory, editCategory, getACategory, saveCategory,
-    showCategories, deleteCategoryWT, editCategoryWT, getCategoryWT, saveCategoryWT, showCategoriesWT } = require('../controller/category.controller')
+    showCategories, deleteCategoryWT, editCategoryWT, getCategoryWT, saveCategoryWT, showCategoriesWT,
+    getCategoryByNumber } = require('../controller/category.controller')
 
 
 //Mostrar todas las categorias: 
@@ -24,6 +25,9 @@ routes.delete('/deleteCategory/:id', verificarTokenMiddleware, checkRoleAuth(['G
 
 //Edit category
 routes.put('/editCategory/:id', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'SuperUsuario']), editCategory)
+
+//Show category by reference:
+routes.get('/getCategoryByNumber/:identifier', verificarTokenMiddleware, checkRoleAuth(['Gerente', 'Administrador', 'Colaborador', 'SuperUsuario']), getCategoryByNumber)
 
 //ChatBack: 
 // Mostrar todas las categorías sin  (tenant)
