@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const router = Router();
 
-const {movimientoDeCajaMenor} = require("../controller/consultas.controller");
+const {movimientoDeCajaMenor, 
+  obtenerGastoRealMesActualC, 
+  obtenerTercerosMasUtilizadosC,
+  obtenercategoriasMasUtilizadasC,
+  } = require("../controller/consultas.controller");
 
 
 const validarTokenMiddleware = require('../middleware/userAuthentication');
@@ -14,4 +18,9 @@ router.get("/", (req, res) => {
 
 // Ruta para obtener los movimienos de caja
 router.post("/obtenerMovimientoCaja", validarTokenMiddleware,checkRoleAuth(['SuperUsuario','Gerente', 'Administrador']),movimientoDeCajaMenor);
-module.exports = router;
+router.get('/gastoActual', validarTokenMiddleware, obtenerGastoRealMesActualC);
+router.get('/tercerosMasUtilizados',validarTokenMiddleware,  obtenerTercerosMasUtilizadosC);
+router.get('/categoriasMasUtilizados',validarTokenMiddleware,    obtenercategoriasMasUtilizadasC);
+
+
+module.exports = router; 

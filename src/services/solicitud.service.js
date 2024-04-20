@@ -8,6 +8,9 @@ const {
   guardarEgreso,
   actualizarEgresoId,
 } = require("../services/egresos.service");
+const {createNotificationForAdminSoli, createNotificationForColaborador, sendNotificationToAdminUpdateSol} = require('../services/notificationService')
+const {verificarSaldoCaja, actualizarSaldoCaja }= require('../services/saldoDeCaja.Service')
+
 
 const obtenerSolicitudes = async (fechaInicio, fechaFin, tenantId, usuarioId = null, usuarioRol = null, documento = null) => {
   try {
@@ -106,7 +109,14 @@ const obtenerSolicitudesPorId = async (solicitudId, tenantId) => {
   }
 };
 
-const guardarSolicitud = async (solicitud, tenantId) => {
+const guardarSolicitud = async (solicitud, tenantId, pdfFile) => {
+
+  if (pdfFile) {
+    // Si se proporciona un archivo adjunto, asigna la ruta del archivo al campo pdfRunt
+    solicitud.facturaUrl = pdfFile.path;
+  }
+
+  
 
   console.log("esta es la solicitud para guardar..",solicitud);
   // console.log("esta es la ruta del archivo para guardar..",rutaArchivo);
@@ -137,7 +147,10 @@ const guardarSolicitud = async (solicitud, tenantId) => {
   // Guardar la solicitud
   const solicitudGuardada = await nuevaSolicitud.save();
 
+  await createNotificationForAdminSoli(tenantId, 'Nueva solicitud de gasto');
+
   return solicitudGuardada;
+  
 };
 
 const actualizarSolicitudId = async (tenantId, idSolicitudActual, tipoDoc) => {
@@ -246,7 +259,19 @@ const modificarSolicitudPorId = async (
       throw new Error("Solicitud no encontrada");
     }
 
+    //enviar notificacion a admin
+
+     
+     // Crear el mensaje de notificación con el nombre del nuevo estado
+// Crear el mensaje de notificación con el número de solicitud
+const mensajeNotificacion = `Solicitud: ${solicitudModificada.solicitudId}, ha sido actualizada`;
+
+// Enviar notificación a los administradores que deben ser notificados
+await sendNotificationToAdminUpdateSol(tenantId, mensajeNotificacion);
+
+
     return solicitudModificada;
+
   } catch (error) {
     if (error.name === "CastError" && error.path === "_id") {
       throw new Error(
@@ -261,6 +286,20 @@ const modificarSolicitudPorId = async (
  
 const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
   try {
+    // Verificar si el nuevo estado es "aprobado" y si el saldo de caja es suficiente
+    if (nuevoEstadoId === '65d6a435c04706dd1cdafd6d') {
+      await verificarSaldoCaja(tenantId);
+
+      const saldoActual = await actualizarSaldoCaja(tenantId);
+
+      // Obtener el valor de la solicitud
+      const solicitud = await Solicitud.findById(solicitudId);
+      const valorSolicitud = solicitud.valor;
+
+      if (saldoActual <= valorSolicitud) {
+        throw new Error('No se puede cambiar el estado a "aprobado" debido a saldo insuficiente en caja. Se notificara a su Gerente');
+      }
+    }
 
     // Verificar que el _id de la solicitud y el tenantId coincidan
     const solicitudExistente = await Solicitud.findOne({
@@ -271,7 +310,7 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
       model: estadoSolicitudModel,
     });
 
-    console.log("solicitud existente", solicitudExistente);
+    // console.log("solicitud existente", solicitudExistente);
 
     if (!solicitudExistente) {
       throw new Error("Solicitud no encontrada");
@@ -279,25 +318,26 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
 
     // Obtener el nombre del estado actual
     const nombreEstado = solicitudExistente.estado?.nombre;
-    console.log("nombre del estado", nombreEstado);
+    // console.log("nombre del estado", nombreEstado);
 
-    if (nombreEstado == "finalizado") {
+    if (nombreEstado === "finalizado") {
       throw new Error("La solicitud ya ha sido procesada, no se puede cambiar el estado finalizado");
     }
 
     // Actualizar estado de la solicitud
     solicitudExistente.estado = nuevoEstadoId;
+
     const solicitudActualizada = await solicitudExistente.save();
 
-    console.log(
-      "este es el nuevo id del estado de la solicitud ",
-      solicitudActualizada.estado._id,
-      "este es el nuevoEstadoId pasado como parametro: ",
-      nuevoEstadoId,
-    );
+    // console.log(
+    //   "este es el nuevo id del estado de la solicitud ",
+    //   solicitudActualizada.estado._id,
+    //   "este es el nuevoEstadoId pasado como parametro: ",
+    //   nuevoEstadoId,
+    // );
 
     // Verificar si el nuevo estado es "finalizado"
-    if (nuevoEstadoId == solicitudActualizada.estado._id) {
+    if (nuevoEstadoId === solicitudActualizada.estado._id) {
       // Crear egreso de caja utilizando los datos de la solicitud
       const egreso = new Egreso({
         tenantId: solicitudActualizada.tenantId,
@@ -311,12 +351,12 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
         // Otros campos necesarios para el egreso de caja...
       });
 
-      console.log(
-        "egreso creado de solicitud:",
-        egreso,
-        "tenantId de la solicitud:",
-        solicitudActualizada.tenantId,
-      );
+      // console.log(
+      //   "egreso creado de solicitud:",
+      //   egreso,
+      //   "tenantId de la solicitud:",
+      //   solicitudActualizada.tenantId,
+      // );
 
       try {
         // Guardar el egreso de caja
@@ -334,7 +374,17 @@ const cambiarEstadoSolicitud = async (solicitudId, nuevoEstadoId, tenantId) => {
         );
         egresoGuardado.egresoId = egresoId;
 
-        console.log("egreso guardado:", egresoGuardado);
+        // console.log("egreso guardado:", egresoGuardado);
+
+        // Obtener el nombre del nuevo estado
+        const nuevoEstado = await estadoSolicitudModel.findById(nuevoEstadoId);
+        const nombreNuevoEstado = nuevoEstado ? nuevoEstado.nombre : "Desconocido";
+
+        // Crear el mensaje de notificación con el nombre del nuevo estado
+        const mensajeNotificacion = `El estado de la solicitud: ${solicitudActualizada.solicitudId}, ha cambiado a: ${nombreNuevoEstado}`;
+
+        // Enviar notificación a los colaboradores que crearon la solicitud
+        await createNotificationForColaborador(tenantId, mensajeNotificacion);
 
         // Continuar con la lógica, si es necesario
       } catch (error) {

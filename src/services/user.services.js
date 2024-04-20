@@ -6,6 +6,8 @@ const nodemailer = require('nodemailer');
 const Role= require('../models/roles.model')
 const listaNegraService = require('../services/blackList.service');
 const sendEmailUsers = require('../helpers/sendEmailUser')
+const {createNotificationForAdmin} = require('../services/notificationService')
+
 
 // Tu lógica para el servicio de usuario aquí
 
@@ -25,12 +27,12 @@ const createUser = async (req, res) => {
 
     // Establecer el estado del usuario según el rol
     let status = 'activo'; // Por defecto, el estado es "activo"
-    if (role && role.rol === 'Gerente') {
-      status = 'pendiente'; // Si es "Gerente", establecemos el estado como "pendiente"
-    } else if (role && role.rol === 'Colaborador') {
-      status = 'pendiente'; // Si es "Colaborador", establecemos el estado como "pendiente"
-    }
-    
+if (req.body.rol === 'Gerente' || req.body.rol === 'Colaborador') {
+  status = 'pendiente'; // Si es "Gerente" o "Colaborador", establecemos el estado como "pendiente"
+}
+
+                    // await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+
 
 
     // Crear el usuario
@@ -48,6 +50,11 @@ const createUser = async (req, res) => {
       tenantId: req.body.tenantId,
       firstLogin: true // Nuevo campo para verificar el primer inicio de sesión
     });
+
+    // Si el rol del nuevo usuario es "Colaborador", enviar notificación
+    if (req.body.rol === 'Colaborador') {
+      await createNotificationForAdmin(req.body.tenantId, req.body.rol);
+    }
 
     // Datos del usuario a enviar por correo
     let userData = {
@@ -234,8 +241,18 @@ function crearToken(user) {
 
 
 const getUsers = async (tenantId) => {
-  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' }, status: 'activo' });
+  return await User.find({ tenantId: tenantId, rol: { $ne: 'Gerente' },  });
 };
+
+const getUsersSuperU = async () => {
+  try {
+    return await User.find({ status: { $in: ['activo', 'inactivo'] } });
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    throw new Error("Error al obtener usuarios");
+  }
+};
+
 
 
 //listar usuario por id
@@ -389,5 +406,6 @@ module.exports = {
   enviarCorreoRestablecimiento,
   restablecerContraseña,
   logout,
-  editUser
+  editUser,
+  getUsersSuperU
 };

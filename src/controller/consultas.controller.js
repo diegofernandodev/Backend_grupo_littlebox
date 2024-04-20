@@ -1,4 +1,7 @@
-const { movimientoDeCajaMenor } = require("../services/consultas.service");
+const { movimientoDeCajaMenor, obtenerGastoRealMesActual, 
+  obtenerTercerosMasUtilizados,
+  obtenerCategoriaMasUtilizadas,
+   } = require("../services/consultas.service");
 const { ResponseStructure } = require("../helpers/ResponseStructure");
 
 
@@ -29,4 +32,41 @@ consultasController.movimientoDeCajaMenor = async (req, res) => {
   }
   
 
+  consultasController.obtenerGastoRealMesActualC= async (req, res, next) => {
+    const tenantId = req.user.tenantId; // Suponiendo que tienes un middleware de autenticación que agrega el tenantId al objeto de solicitud (req.user)
+    
+    try {
+      const gastoRealMesActual = await obtenerGastoRealMesActual(tenantId);
+      res.status(200).json({ gastoRealMesActual });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
+
+  consultasController.obtenerTercerosMasUtilizadosC = async (req, res, next) => {
+    try {
+      const tenantId = req.user.tenantId; // Suponiendo que el middleware userAuthentication coloca el tenantId en req.user
+      const tercerosMasUtilizados = await obtenerTercerosMasUtilizados(tenantId);
+      res.status(200).json(tercerosMasUtilizados);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
+  consultasController.obtenercategoriasMasUtilizadasC = async (req, res, next) => {
+    try {
+      const tenantId = req.user.tenantId; // Suponiendo que el middleware userAuthentication coloca el tenantId en req.user
+      const categoriasMasUtilizados = await obtenerCategoriaMasUtilizadas(tenantId);
+      res.status(200).json(categoriasMasUtilizados);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
+  
+  
 module.exports = consultasController

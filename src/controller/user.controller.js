@@ -10,7 +10,8 @@ const { createUser,
   enviarCorreoRestablecimiento,
   restablecerContraseña,
   logout,
-  editUser
+  editUser,
+  getUsersSuperU
   } = require('../services/user.services');
 
 const User = require('../models/user.model');
@@ -96,6 +97,16 @@ controller.getUsers = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 }
+
+controller.getUsersSuperUC = async (req, res) => {
+  try {
+    const listUsers = await getUsersSuperU(); // Llama a getUsersSuperU sin ningún parámetro
+    res.json(listUsers);
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+};
 
 
  
