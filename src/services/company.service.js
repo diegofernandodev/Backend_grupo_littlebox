@@ -133,63 +133,75 @@ const approveCompany = async (companyId) => {
 
     // Construir el mensaje HTML para el correo electrónico
     const messageHtml = `
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Empresa Aprobada</title>
-        <style>
-          /* Estilos generales */
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            color: #333;
-            margin: 0;
-            padding: 0;
-          }
-          .container {
-            width: 80%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-          }
-          h1 {
-            color: #0073b7;
-          }
-          ul {
-            list-style-type: none;
-            padding: 0;
-          }
-          li {
-            margin-bottom: 10px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>¡Tu empresa ha sido aprobada!</h1>
-          <p>Estos son los datos:</p>
-          <ul>
-            <li><strong>Nombre de la Empresa:</strong> ${updatedCompany.nameCompany}</li>
-            <li><strong>Teléfono de la Empresa:</strong> ${updatedCompany.telephoneCompany}</li>
-            <li><strong>NIT:</strong> ${updatedCompany.tenantId}</li>
-            <li><strong>Email de la Empresa:</strong> ${updatedCompany.emailCompany}</li>
-            <li><strong>Dirección de la Empresa:</strong> ${updatedCompany.directionCompany}</li>
-          </ul>
-          <h2>Datos de usuario para Gerente</h2>
-          <ul>
-            <li><strong>Usuario de gerente:</strong> ${managerUser.email}</li>
-            <li><strong>Contraseña:</strong> ${managerUser.identification}</li>
-          </ul>
-          <p>Inicia sesion con este usuario Gerente<p>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Empresa Aprobada</title>
+      <style>
+        /* Estilos generales */
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f7f7f7;
+          color: #333;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          width: 80%;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          background-color: #fff;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+          color: #0073b7;
+        }
+        ul {
+          list-style-type: none;
+          padding: 0;
+        }
+        li {
+          margin-bottom: 10px;
+        }
+        .alert {
+          background-color: #ffc107;
+          color: #333;
+          padding: 10px;
+          margin-bottom: 20px;
+          border-radius: 5px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        
+        <h1>¡Tu empresa ha sido aprobada!</h1>
+        <p>Estos son los datos:</p>
+        <ul>
+          <li><strong>Nombre de la Empresa:</strong> ${updatedCompany.nameCompany}</li>
+          <li><strong>Teléfono de la Empresa:</strong> ${updatedCompany.telephoneCompany}</li>
+          <li><strong>NIT:</strong> ${updatedCompany.tenantId}</li>
+          <li><strong>Email de la Empresa:</strong> ${updatedCompany.emailCompany}</li>
+          <li><strong>Dirección de la Empresa:</strong> ${updatedCompany.directionCompany}</li>
+        </ul>
+        <h2>Datos de usuario para Gerente</h2>
+        <ul>
+          <li><strong>Usuario de gerente:</strong> ${managerUser.email}</li>
+          <li><strong>Contraseña:</strong> ${managerUser.identification}</li>
+        </ul>
+        <p>Inicia sesión con este usuario Gerente<p>
+        <div class="alert">
+          <strong>¡Importante!</strong> Por favor, inicie sesión con el usuario Gerente proporcionado y realize su primer Ingreso para comenzar a utilizar nuestras funciones.
         </div>
-      </body>
-      </html>
-    `;
+      </div>
+      
+    </body>
+    </html>
+  `;
 
     // Enviar el correo electrónico a la empresa aprobada
     await sendEmail({
